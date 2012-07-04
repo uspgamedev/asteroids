@@ -1,5 +1,4 @@
-﻿
-# Inicializando...
+
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(asteroids CXX C)
 SET(GAME_EXENAME asteroids)
@@ -7,7 +6,7 @@ SET(GAME_NAME "Asteroids")
 SET(GAME_VERSION "1.0.0 Alpha")
 SET(CMAKE_BUILD_TYPE Release)
 
-# Arquivos de código fonte vão aqui!
+# Arquivos de codigo fonte vao aqui!
 SET(GAME_SRCS 
     ./src/asteroids.cc 
 )
