@@ -120,6 +120,8 @@ TARGET_LINK_LIBRARIES (${GAME_EXENAME}
                          ${SDLTTF_LIBRARY}
                          ${SDLIMAGE_LIBRARY}
                          ${OPENGL_LIBRARIES}
+                         ${PYTHON_LIBRARIES}
+                         ${LUA_LIBRARIES}
                         )
 
 

@@ -216,10 +216,12 @@ class CollisionClass(_object):
 CollisionClass_swigregister = _pyramidworks_collision.CollisionClass_swigregister
 CollisionClass_swigregister(CollisionClass)
 
-class CollisionManager(_object):
+class CollisionManager(ugdk_util.Uncopyable):
     __swig_setmethods__ = {}
+    for _s in [ugdk_util.Uncopyable]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
     __setattr__ = lambda self, name, value: _swig_setattr(self, CollisionManager, name, value)
     __swig_getmethods__ = {}
+    for _s in [ugdk_util.Uncopyable]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
     __getattr__ = lambda self, name: _swig_getattr(self, CollisionManager, name)
     __repr__ = _swig_repr
     def __init__(self, *args): 
