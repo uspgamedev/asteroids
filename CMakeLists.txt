@@ -29,9 +29,6 @@ ENDIF (UNIVERSAL)
 SET(DEFS "" CACHE STRING "#define's que voce queira incluir na compilacao; separe por espacos")
 IF(WIN32)
   SET(DEFS "${DEFS} WIN32")
-  IF(MSVC)
-    SET(DEFS "${DEFS} _CRT_SECURE_NO_DEPRECATE __MSVC__")
-  ENDIF(MSVC)
 ENDIF(WIN32)
 
 # CFLAGS: flags que voce queira enviar ao compilador
@@ -108,12 +105,22 @@ link_directories ("lib")
 include_directories ("include")
 include_directories ("src")
 
+if (CMAKE_COMPILER_IS_GNUCXX)
+	set (EXTRA_LIBRARIES m ${EXTRA_LIBRARIES})
+endif (CMAKE_COMPILER_IS_GNUCXX)
+if (MINGW)
+	set (EXTRA_LIBRARIES mingw32 ${EXTRA_LIBRARIES})
+endif (MINGW)
+if (WIN32)
+	set (EXTRA_LIBRARIES Ws2_32 ${EXTRA_LIBRARIES})
+endif (WIN32)
+
 ADD_EXECUTABLE(${GAME_EXENAME} ${GAME_SRCS})
 SET_TARGET_PROPERTIES(${GAME_EXENAME} PROPERTIES LINK_FLAGS "${LDFLAGS}")
 SET_TARGET_PROPERTIES(${GAME_EXENAME} PROPERTIES COMPILE_FLAGS "${CFLAGS} ${CFLAGS_EXTRA}")
 SET_TARGET_PROPERTIES(${GAME_EXENAME} PROPERTIES PROJECT_NAME "${GAME_NAME}")
 TARGET_LINK_LIBRARIES (${GAME_EXENAME}
-                         m
+                         ${EXTRA_LIBRARIES}
                          ${LUGDK}
                          ${SDL_LIBRARY}
                          ${SDLMIXER_LIBRARY}
