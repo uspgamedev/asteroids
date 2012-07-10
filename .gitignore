@@ -5,3 +5,20 @@ CMakeCache.txt
 cmake_install.cmake
 
 *.dll
+*.pdb
+*~
+.*.swp
+!CMakeLists.txt
+*.user
+*.sdf
+/ipch
+/Win32
+/x64
+*.suo
+/Release
+/Debug
+/*.dir
+/*.filters
+*.opensdf
+/*.sln
+/*.vcxproj

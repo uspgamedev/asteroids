@@ -1,5 +1,5 @@
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(asteroids CXX C)
 SET(GAME_EXENAME asteroids)
 SET(GAME_NAME "Asteroids")
@@ -24,40 +24,29 @@ IF (UNIVERSAL)
   SET (MACOSX_DEPLOYMENT_TARGET 10.5)
 ENDIF (UNIVERSAL)
 
-# #define's que voce queira incluir na compilacao
-# separe por espacos
-SET(DEFS "" CACHE STRING "#define's que voce queira incluir na compilacao; separe por espacos")
-IF(WIN32)
-  SET(DEFS "${DEFS} WIN32")
-ENDIF(WIN32)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+if (UNIX OR MINGW)
+    # se for o g++ para *nix ou o MinGW para Windows:
+    add_definitions(-Wall -ansi -U_FORTIFY_SOURCE -msse2 -DBOOST_HAS_TR1_TUPLE)
+elseif (MSVC) 
+    add_definitions(/D_CRT_SECURE_NO_WARNINGS /DBOOST_ALL_NO_LIB /DBOOST_HAS_TR1_TUPLE /W4 /wd4100 /wd4127 /wd4201 /wd4211 /wd4250 /wd4706 /arch:SSE2 /fp:fast /MP)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif ()
+if(WIN32)
+    add_definitions(-DWIN32)
+endif()
 
-# CFLAGS: flags que voce queira enviar ao compilador
 # LDFLAGS: flags que voce queira enviar ao ligador
-SET(CFLAGS "" CACHE STRING "flags enviadas ao compilador")
 SET(LDFLAGS "" CACHE STRING "flags enviadas ao linker")
-IF(UNIX)
-  # se for o g++ para *nix:
-  SET(CFLAGS "${CFLAGS} -g -Wall -ansi -O3 -U_FORTIFY_SOURCE -msse2")
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    IF(UNIVERSAL)
-      SET(LDFLAGS "${LDFLAGS} -mmacosx-version-min=10.5")
-    ELSE()
-      SET(LDFLAGS "${LDFLAGS}")
-    ENDIF()
-  ELSE()
-    SET(LDFLAGS "${LDFLAGS}")
+
+# se for o g++ para *nix:
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  IF(UNIVERSAL)
+    SET(LDFLAGS "${LDFLAGS} -mmacosx-version-min=10.5")
   ENDIF()
-ELSE(UNIX)
-  IF(MINGW)
-    # se for o g++ para Windows:
-    SET(CFLAGS "${CFLAGS} -Wall -ansi -O3 -U_FORTIFY_SOURCE")
-    SET(LDFLAGS "${LDFLAGS}")
-  ELSE(MINGW)
-    # se for o Microsoft Visual C++:
-    SET(CFLAGS "${CFLAGS}")
-    SET(LDFLAGS "${LDFLAGS}")
-  ENDIF(MINGW)
-ENDIF(UNIX)
+ENDIF()
+
 
 # Encontrando as bibliotecas necessarias:
 find_package(OpenGL REQUIRED)
@@ -81,24 +70,12 @@ include_directories(${LUA_INCLUDE_DIR})
 find_package(PythonLibs 2.7 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
-find_library (LUGDK ugdk_d lib/)
-if (NOT LUGDK)
-    find_library (LUGDK ugdk lib/)
-    if (NOT LUGDK)
-        message (FATAL_ERROR "Fatal error: libugdk not found!")
-    endif (NOT LUGDK)
-endif (NOT LUGDK)
+find_library (LUGDKD ugdk_d lib/)
+find_library (LUGDK ugdk lib/)
 
-# pre-processor: #define's
-IF(MSVC)
-  FOREACH(d ${DEFS})
-    SET(CFLAGS_EXTRA "${CFLAGS_EXTRA} /D${d}")
-  ENDFOREACH(d)
-ELSE(MSVC)
-  FOREACH(d ${DEFS})
-    SET(CFLAGS_EXTRA "${CFLAGS_EXTRA} -D${d}")
-  ENDFOREACH(d)
-ENDIF(MSVC)
+if (NOT LUGDK AND NOT LUGDKD)
+    message (FATAL_ERROR "Fatal error: libugdk not found!")
+endif ()
 
 cmake_policy(SET CMP0015 NEW)
 link_directories ("lib")
@@ -115,46 +92,20 @@ if (WIN32)
 	set (EXTRA_LIBRARIES Ws2_32 ${EXTRA_LIBRARIES})
 endif (WIN32)
 
+
 ADD_EXECUTABLE(${GAME_EXENAME} ${GAME_SRCS})
 SET_TARGET_PROPERTIES(${GAME_EXENAME} PROPERTIES LINK_FLAGS "${LDFLAGS}")
-SET_TARGET_PROPERTIES(${GAME_EXENAME} PROPERTIES COMPILE_FLAGS "${CFLAGS} ${CFLAGS_EXTRA}")
 SET_TARGET_PROPERTIES(${GAME_EXENAME} PROPERTIES PROJECT_NAME "${GAME_NAME}")
 TARGET_LINK_LIBRARIES (${GAME_EXENAME}
                          ${EXTRA_LIBRARIES}
-                         ${LUGDK}
+                         optimized ${LUGDK}
+                         debug ${LUGDKD}
                          ${SDL_LIBRARY}
                          ${SDLMIXER_LIBRARY}
                          ${SDLTTF_LIBRARY}
                          ${SDLIMAGE_LIBRARY}
                          ${OPENGL_LIBRARIES}
-                         ${PYTHON_LIBRARIES}
+                         optimized ${PYTHON_LIBRARIES}
+                         debug ${PYTHON_DEBUG_LIBRARY}
                          ${LUA_LIBRARIES}
                         )
-
-
-# Installing on *nix
-IF(UNIX)
-  IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    # Mac
-    SET(CHECKMAC "#define ISMAC 1")
-    SET(GAME_INSTALL_DIR ".")
-  ELSE()
-    SET(GAME_INSTALL_DIR "/usr/share/${GAME_EXENAME}/data")
-    set (GAME_LOCAL_DIR "./data")
-    SET(GAME_FINAL_DIR "/usr/bin")
-    
-    INSTALL(CODE "MESSAGE(\"Installing ${GAME_NAME} ${GAME_VERSION}... Make sure you have root privileges.\")")
-    install (CODE
-      "set_target_properties (${GAME_EXENAME} PROPERTIES COMPILE_FLAGS) \"${CFLAGS} ${CFLAGS_EXTRA} -DINSTALLED\""
-    )
-    
-    INSTALL(TARGETS ${GAME_EXENAME} RUNTIME DESTINATION ${GAME_INSTALL_DIR})
-    #INSTALL(FILES license.txt readme.html DESTINATION ${GAME_INSTALL_DIR})
-    INSTALL(DIRECTORY data DESTINATION ${GAME_INSTALL_DIR})
-
-    INSTALL(CODE "MESSAGE(\"Done! Please run ${GAME_EXENAME} to start ${GAME_NAME}.\")")
-  ENDIF()
-ELSE(UNIX)
-  SET(GAME_INSTALL_DIR "./data")
-ENDIF(UNIX)
-
