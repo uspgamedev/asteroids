@@ -93,7 +93,7 @@ if (WIN32)
 endif (WIN32)
 
 if (PYTHON_DEBUG_LIBRARY)
-    set(DEBUGPYLIB "debug ${PYTHON_DEBUG_LIBRARY}")
+    set(DEBUGPYLIB debug;${PYTHON_DEBUG_LIBRARY})
 else()
     set(DEBUGPYLIB "")
 endif()
