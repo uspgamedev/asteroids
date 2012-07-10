@@ -92,6 +92,11 @@ if (WIN32)
 	set (EXTRA_LIBRARIES Ws2_32 ${EXTRA_LIBRARIES})
 endif (WIN32)
 
+if (PYTHON_DEBUG_LIBRARY)
+    set(DEBUGPYLIB "debug ${PYTHON_DEBUG_LIBRARY}")
+else()
+    set(DEBUGPYLIB "")
+endif()
 
 ADD_EXECUTABLE(${GAME_EXENAME} ${GAME_SRCS})
 SET_TARGET_PROPERTIES(${GAME_EXENAME} PROPERTIES LINK_FLAGS "${LDFLAGS}")
@@ -106,6 +111,6 @@ TARGET_LINK_LIBRARIES (${GAME_EXENAME}
                          ${SDLIMAGE_LIBRARY}
                          ${OPENGL_LIBRARIES}
                          optimized ${PYTHON_LIBRARIES}
-                         debug ${PYTHON_DEBUG_LIBRARY}
+                         ${DEBUGPYLIB}
                          ${LUA_LIBRARIES}
                         )

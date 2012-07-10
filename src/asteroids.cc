@@ -101,7 +101,11 @@ static void SurpriseLuaTest() {
 int main(int argc, char *argv[]) {
 
     ugdk::Configuration engine_config;
+#ifdef DEBUG
+    engine_config.window_title = "Asteroids DEBUGZ";
+#else
     engine_config.window_title = "Asteroids";
+#endif
     engine_config.window_size  = Vector2D(640.0, 480.0);
     engine_config.fullscreen   = false;
     engine_config.base_path = "./data/";
