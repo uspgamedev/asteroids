@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 
     ugdk::Configuration engine_config;
 #ifdef DEBUG
-    engine_config.window_title = "Asteroids DEBUGZ";
+    engine_config.window_title = "Asteroids DEBUG";
 #else
     engine_config.window_title = "Asteroids";
 #endif

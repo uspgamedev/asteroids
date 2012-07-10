@@ -36,7 +36,7 @@ class Projectile (BasicEntity):
         scale = self.radius * 0.20 / Projectile.base_radius
         for node in self.nodes:
             node.modifier().set_scale( Vector2D(scale, scale) )
-            node.modifier().set_rotation( velocity.Angle() - 3*pi/2.0 )
+            node.modifier().set_rotation( -(velocity.Angle() + pi/2.0) )
         self.velocity = velocity
         self.value = 0
         self.life_hud.node.set_active(False)
@@ -44,7 +44,7 @@ class Projectile (BasicEntity):
     def Update(self, dt):
         self.UpdatePosition(dt)
         for node in self.nodes:
-            node.modifier().set_rotation( self.velocity.Angle() - 3*pi/2.0 )
+            node.modifier().set_rotation( -(self.velocity.Angle()+pi/2.0) )
         self.lifetime -= dt
         if self.lifetime <= 0:
             #gotta destroy this thing
