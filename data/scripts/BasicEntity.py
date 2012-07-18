@@ -25,13 +25,6 @@ class EntityInterface (Entity):
 
         self.node = Node()
         self.node.modifier().set_offset( Vector2D(x,y) )
-        self.nodes = []
-        for i in range(2):
-            for j in range(2):
-                node = Node()
-                node.modifier().set_offset(Vector2D(Config.gamesize.get_x() * i, Config.gamesize.get_y() * j))
-                self.node.AddChild(node)
-                self.nodes.append(node)
 
         self.new_objects = []
         self.is_destroyed = False
@@ -103,14 +96,10 @@ class BasicEntity (EntityInterface):
         self.size = Vector2D(self.radius*2, self.radius*2)
         texture_obj = Engine_reference().resource_manager().texture_container().Load(texture_name, texture_name)
 
-        self.shapes = []
-        for node in self.nodes:
-            shape = TexturedRectangle( texture_obj, self.size )
-            shape.set_hotspot(Drawable.CENTER)
-            self.shapes.append(shape)
-            node.set_drawable(shape)
+        self.shape = TexturedRectangle( texture_obj, self.size )
+        self.shape.set_hotspot(Drawable.CENTER)
+        self.node.set_drawable(self.shape)
 
-        self.shape = self.shapes[0]
         self.velocity = Vector2D(0.0, 0.0)
         self.max_velocity = 5000.0 #length of the maximum velocity - the entity can't achieve a velocity with length greater than this by whatever means
         self.last_velocity = None

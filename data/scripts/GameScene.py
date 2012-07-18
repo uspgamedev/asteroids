@@ -172,8 +172,7 @@ class AsteroidsScene (Scene):
         #print "GENERATE MARK 1"
         self.Populate( MapGenerator.Generate(self.difficultyFactor, heroData) )
         #print "GENERATE MARK 2"
-        #self.content_node().set_drawable(MapGenerator.GetBackgroundDrawable() )
-        self.content_node().AddChild(MapGenerator.GetBackgroundNode() )
+        self.content_node().set_drawable(MapGenerator.GetBackgroundDrawable() )
         #print "GENERATE MARK 3"
         self.interface_node().AddChild(self.stats.node)
         
@@ -236,16 +235,6 @@ class AsteroidsScene (Scene):
         self.CheckCommands()
         self.HandleCollisions()
 
-        if self.hero != None:
-            video_size = Engine_reference().video_manager().video_size()
-            pos = self.hero.GetPos()
-            if pos.get_x() < Config.gamesize.get_x() * 0.5:
-                pos.set_x(pos.get_x() + Config.gamesize.get_x())
-            if pos.get_y() < Config.gamesize.get_y() * 0.5:
-                pos.set_y(pos.get_y() + Config.gamesize.get_y())
-            self.content_node().modifier().set_offset(-pos + video_size * 0.5)
-            #self.hud.modifier().set_offset(-self.hero.GetPos() + video_size * 0.5)
-            self.hud.modifier().set_offset(-pos + video_size * 0.5)
         
     def CheckCommands(self):
         input = Engine_reference().input_manager()

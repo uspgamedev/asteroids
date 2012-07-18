@@ -88,45 +88,9 @@ def Generate(difficultyFactor, heroData):
     return entities
 
 
-def GetBackgroundDrawable(i):
-    screenSize = Config.gamesize * 0.5 #Engine_reference().video_manager().video_size()
-    texture_obj = ResourceManager_GetTextureFromFile("images/background%s.jpg" % (i))
+def GetBackgroundDrawable():
+    screenSize = Config.gamesize #Engine_reference().video_manager().video_size()
+    texture_obj = ResourceManager_GetTextureFromFile("images/background%s.jpg" % (random.randint(1,3)))
     background = TexturedRectangle( texture_obj, screenSize )
     background.thisown = 0
     return background
-
-def GetBackgroundSingleNode(i):
-    fullnode = Node()
-
-    topleft = Node(GetBackgroundDrawable(i))
-
-    topright = Node(GetBackgroundDrawable(i))
-    topright.modifier().set_scale(Vector2D(-1.0, 1.0))
-    topright.modifier().set_offset(Vector2D(Config.gamesize.get_x(), 0.0))
-
-    botleft = Node(GetBackgroundDrawable(i))
-    botleft.modifier().set_scale(Vector2D(1.0, -1.0))
-    botleft.modifier().set_offset(Vector2D(0.0, Config.gamesize.get_y()))
-
-    botright = Node(GetBackgroundDrawable(i))
-    botright.modifier().set_scale(Vector2D(-1.0, -1.0))
-    botright.modifier().set_offset(Config.gamesize)
-
-    fullnode.AddChild(topleft)
-    fullnode.AddChild(topright)
-    fullnode.AddChild(botleft)
-    fullnode.AddChild(botright)
-
-    return fullnode
-
-def GetBackgroundNode():
-    bgnode = Node()
-    r = random.randint(1,3)
-    for i in range(2):
-        for j in range(2):
-            node = Node()
-            node.AddChild(GetBackgroundSingleNode(r))
-            node.modifier().set_offset(Vector2D(Config.gamesize.get_x() * i, Config.gamesize.get_y() * j))
-            bgnode.AddChild(node)
-    bgnode.set_zindex(-10000)
-    return bgnode
