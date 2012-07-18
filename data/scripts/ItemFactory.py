@@ -40,8 +40,8 @@ def CreateEnergyMaxBoost():
 def CreatePulsePack(x, y):
     powerUps = {
         "Power Boost": CreatePulseDamagePack,
-        "Multiplicity Boost": CreatePulseDamagePack,
-        "Homing Boost": CreatePulseDamagePack,
+        "Multiplicity Boost": CreatePulseDamagePack, #<M>#
+        "Homing Boost": CreatePulseDamagePack, #<D>#
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
@@ -59,7 +59,7 @@ def CreatePassivePack(x, y):
         "Satellites": CreateSatellitePack,
         "Force Shield": CreateShieldPack,
         "Item Attractor": CreateItemAttractorPack,
-        "Matter Absorption": CreateSatellitePack,
+        "Matter Absorption": CreateSatellitePack, #<M>#
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
@@ -81,9 +81,9 @@ def CreateItemAttractorPack():
 def CreateActivePack(x, y):
     powerUps = {
         "Anti Grav Shield": CreateAntiGravShieldPack,
-        "Laser": CreateShockBombPack,
+        "Laser": CreateShockBombPack, #<VMT>#
         "Shock Bomb": CreateShockBombPack,
-        "Blackhole": CreateShockBombPack,
+        "Blackhole": CreateShockBombPack, #<M>#
         "Hyperspace": CreateHyperspacePack,
     }
     choice = random.choice(powerUps.keys())
@@ -106,9 +106,9 @@ def CreateHyperspacePack():
 def CreateInstantPack(x, y):
     powerUps = {
         "Explosion": CreateExplosionPack,
-        "Freeze": CreateExplosionPack,
-        "Slowdown": CreateExplosionPack,
-        "Fractal Shot": CreateFracturePack,
+        "Freeze": CreateFractalShotPack, #<M>#
+        "Slowdown": CreateFractalShotPack, #<T>#
+        "Fractal Shot": CreateFractalShotPack,
         "Fracture": CreateFracturePack,
     }
     choice = random.choice(powerUps.keys())
@@ -118,6 +118,9 @@ def CreateInstantPack(x, y):
 
 def CreateExplosionPack():
     return Items.ShockwaveEffect(2.0, [5.0, 300.0], 100.0, 1.0)
+
+def CreateFractalShotPack():
+    return Items.FractalShotEffect()
 
 def CreateFracturePack():
     return Items.FractureEffect()

@@ -4,7 +4,7 @@ from BasicEntity import BasicEntity, RangeCheck, GetEquivalentValueInRange
 from Animations import CreateExplosionFromCollision
 import Shockwave
 
-from random import random
+from random import random, randint
 from math import pi
 
 class Projectile (BasicEntity):
@@ -278,7 +278,7 @@ class ShockBomb(Weapon):
     def Toggle(self, active, dt):
         if active and self.can_shoot:
             self.can_shoot = False
-            mouse_dir = Engine_reference().input_manager().GetMousePosition() - (Engine_reference().video_manager().video_size() * 0.5)
+            mouse_dir = Engine_reference().input_manager().GetMousePosition() - self.parent.GetPos()
             mouse_dir = mouse_dir.Normalize()
             return self.Shoot(mouse_dir)
         elif not active:
@@ -341,3 +341,27 @@ class Hyperspace(Weapon):
         self.parent.node.modifier().set_offset(pos)
         self.enabled = False
         return True
+
+###################################################################################
+###################################################################################
+class FractalShot(Projectile):
+    def __init__(self, x, y, velocity, depth):
+        power = 0.8 + random()*0.4
+        Projectile.__init__(self, x, y, velocity, power, 30.0, True)
+        self.depth = depth
+        self.node.modifier().set_color( Color(random(), random(), random(), 1.0) )
+        self.AddOnHitEvent(self.Detonation)
+
+    def Detonation(self, projectile, target):
+        if self.depth <= 1: return
+        numshots = randint(2,5)
+        for i in range(numshots):
+            pos = self.GetPos()
+            dir = Vector2D(1.0, 0.0)
+            dir = dir.Rotate(random()*2*pi)
+            dir = dir * (self.radius*2)
+            pos = pos + dir
+            dir = dir.Normalize()
+            dir = dir *( self.velocity.Length() )
+            shot = FractalShot(pos.get_x(), pos.get_y(), dir, self.depth-1)
+            self.new_objects.append(shot)

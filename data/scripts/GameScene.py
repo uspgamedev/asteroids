@@ -33,7 +33,7 @@ class ManagerScene (Scene):
         self.difficulty = 0.5
         self.points = 0
         self.status = ManagerScene.IDLE
-        self.heroData = Ship.ShipData(100.0, 100.0, 25.0)
+        self.heroData = Ship.ShipData(100.0, 100.0, 25.0, 1)
         self.stats = BarUI.StatsUI(self, 100.0, 100.0, Color(0.6,0.6,0.6), 0.4 )
         self.interface_node().AddChild(self.stats.node)
 
@@ -234,7 +234,11 @@ class AsteroidsScene (Scene):
         self.stats.Update()
         self.CheckCommands()
         self.HandleCollisions()
-
+        
+        #if self.hero != None:
+        #    offset = self.hero.GetPos()
+        #    self.content_node().modifier().set_offset(offset)
+            #self.interface_node().modifier().set_offset(offset)
         
     def CheckCommands(self):
         input = Engine_reference().input_manager()
@@ -252,7 +256,7 @@ class AsteroidsScene (Scene):
             self.managerScene.difficulty *= 0.85
         elif input.KeyPressed(K_HOME):
             self.managerScene.lives += 1
-            cheat = ItemFactory.CreatePassivePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+            cheat = ItemFactory.CreateInstantPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
             self.AddObject(cheat)
         
             

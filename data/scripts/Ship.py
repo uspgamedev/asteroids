@@ -12,12 +12,13 @@ from random import randint
 from ugdk.ugdk_graphic import Node
 
 class ShipData:
-    def __init__(self, max_life, max_energy, pulse_damage):
+    def __init__(self, max_life, max_energy, pulse_damage, pulse_shots):
         self.max_life = max_life
         self.max_energy = max_energy
         self.pulse_damage = pulse_damage
+        self.pulse_shots = pulse_shots
     def __repr__(self):
-        return "{ShipData: [MaxLife=%s][MaxEnergy=%s][PulseDmg=%s]}" % (self.max_life, self.max_energy, self.pulse_damage)
+        return "{ShipData: [MaxLife=%s][MaxEnergy=%s][PulseDmg=%s][PulseShots=%s]}" % (self.max_life, self.max_energy, self.pulse_damage, self.pulse_shots)
     def __str__(self): return self.__repr__()
         
 
@@ -67,7 +68,7 @@ class Ship (BasicEntity):
         self.right_weapon.Activate(self)
 
     def GetDirection(self):
-        return Engine_reference().input_manager().GetMousePosition()
+        return Engine_reference().input_manager().GetMousePosition() - self.GetPos()
 
     def Update(self, dt):
         self.CheckCommands(dt)

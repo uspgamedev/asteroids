@@ -9,6 +9,7 @@ import Config
 import Shockwave
 import Animations
 import Ship
+import Weapons
 
 from random import random, randint, shuffle
 from math import pi
@@ -274,3 +275,20 @@ class FractureEffect(Effect):
                 exploAnim = Animations.CreateExplosionAtLocation(obj.GetPos(), obj.radius)
                 obj.new_objects.append(exploAnim)
                 obj.Break()
+
+##################
+class FractalShotEffect(Effect):
+    def __init__(self):
+        Effect.__init__(self, 0)
+
+    def Apply(self, dt):
+        pos = self.target.GetPos()
+        dir = self.target.GetDirection()
+        dir = dir.Normalize()
+        dir = dir * (self.target.radius*2)
+        pos = pos + dir
+        dir = dir.Normalize()
+        dir = dir * ( self.target.velocity.Length()*1.3 )
+        depth = randint(2,5)
+        shot = Weapons.FractalShot(pos.get_x(), pos.get_y(), dir, depth)
+        self.target.new_objects.append(shot)

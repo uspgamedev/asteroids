@@ -11,12 +11,11 @@ fullscreen = False
 language = "en_US"
 
 
-
 ##################################
 # Game Parameters
 ##################################
 
-gamesize = resolution
+gamesize = resolution#Vector2D(2000.0, 2000.0)
 
 # PowerUps
 repairChance = 30.0    # the <powerUpType>Chance variables should sum up to 100.0
