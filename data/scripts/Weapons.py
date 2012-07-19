@@ -5,7 +5,7 @@ from Animations import CreateExplosionFromCollision
 import Shockwave
 
 from random import random, randint
-from math import pi
+from math import pi, ceil
 
 class Projectile (BasicEntity):
     base_radius = 5.0
@@ -81,15 +81,7 @@ class Projectile (BasicEntity):
     def IsParentFriendlyToEntity(self, ent):
         if self.parent == None: return False
 
-        p = self.parent
-        while True:
-            if ent.id == p.id:
-                return True
-            if hasattr(p, "parent"):
-                p = p.parent
-            else:
-                break
-        return False
+        return self.GetGroup() == ent.GetGroup()
 
     def HandleCollision(self, target):
         if self.isFromPlayer and target.CheckType("Asteroid"):
@@ -208,22 +200,48 @@ class Pulse (Weapon):
             power = GetEquivalentValueInRange(self.charge_time, [0, self.max_charge_time], self.power_range)
             cost = self.shot_cost * (1 + (power * self.charge_time))
             mouse_dir = Engine_reference().input_manager().GetMousePosition() - self.parent.GetPos()
+            mouse_dist = mouse_dir.Length()
             mouse_dir = mouse_dir.Normalize()
             self.charge_time = 0.0
-            return self.Shoot(mouse_dir, power, cost)
+            return self.Shoot(mouse_dir, mouse_dist, power, cost)
         return False
         
-    def Shoot(self, direction, power, cost):
+    def getSpreadThreshold(self):
+        screenSize = Engine_reference().video_manager().video_size()
+        l = min(screenSize.get_x(), screenSize.get_y())
+        return l * 0.5
+
+    def Shoot(self, direction, target_distance, power, cost):
+        #checking energy cost
         if self.parent.energy < cost:    return False
         self.parent.TakeEnergy(cost)
-        pos = self.parent.GetPos()
-        dir = direction.Normalize() * 1.15 * (self.parent.radius + Projectile.GetActualRadius(power))
-        pos = pos + dir
-        vel = self.parent.velocity + (direction.Normalize() * self.projectile_speed)
-        proj = Projectile(pos.get_x(), pos.get_y(), vel, power, self.parent.data.pulse_damage, True)
-        proj.SetParent(self.parent)
-        proj.node.modifier().set_color( Color(0.0, 0.5, 1.0, 0.9) )
-        self.parent.new_objects.append(proj)
+        # calculating index for all shots
+        N = self.parent.data.pulse_shots
+        if N > 14:  N = 14
+        shotIndexList = range(-(N-int(ceil(N/2.0))), int(ceil(N/2.0)))
+        indexOffset = 0
+        if N % 2 == 0:
+            indexOffset = 0.5
+        #creating shots...
+        for i in shotIndexList:
+            #first calculate the initial projectile position, based in a circle centered on the parent
+            pos = self.parent.GetPos()
+            dir = direction.Normalize() * 1.15 * (self.parent.radius + Projectile.GetActualRadius(power)) #centralized forward facing direction
+            dir = dir.Rotate( (i+indexOffset) * (pi/7) )
+            pos = pos + dir
+            #then calculate direction/velocity of the projectile, based on distance of mouse to the ship (closer = spread / far = concentrated)
+            velDir = direction.Normalize()
+            spreadThreshold = self.getSpreadThreshold()
+            if target_distance < spreadThreshold:
+                velDir = velDir.Rotate( (i+indexOffset) * (pi/7) * ( (spreadThreshold-target_distance)/spreadThreshold ) )
+            vel = self.parent.velocity + (velDir * self.projectile_speed)
+            #create projectile and set it up
+            proj = Projectile(pos.get_x(), pos.get_y(), vel, power, self.parent.data.pulse_damage, True)
+            proj.SetParent(self.parent)
+            proj.node.modifier().set_color( Color(0.0, 0.5, 1.0, 0.9) )
+            proj.hitsFriendlyToParent = False
+            self.parent.new_objects.append(proj)
+        #ending with a bang
         self.parent.radio.PlaySound("fire.wav")
         return True
 
@@ -364,4 +382,6 @@ class FractalShot(Projectile):
             dir = dir.Normalize()
             dir = dir *( self.velocity.Length() )
             shot = FractalShot(pos.get_x(), pos.get_y(), dir, self.depth-1)
+            shot.SetParent(self.parent)
+            shot.hitsFriendlyToParent = False
             self.new_objects.append(shot)

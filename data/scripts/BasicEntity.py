@@ -76,6 +76,9 @@ class EntityInterface (Entity):
     def HandleCollision(self, target):
         print self.type, " HandleCollision NOT IMPLEMENTED"
         
+    def Delete(self):
+        self.is_destroyed = True
+
     def __repr__(self):
         return "<%s #%s>" % (self.type, self.id)
         
@@ -89,6 +92,12 @@ class BasicColLogic(CollisionLogic):
         self.entity.HandleCollision(data)
 
  
+class Group:
+    UNDETERMINED = -1  #when undetermined, check parent's group, or return neutral
+    NEUTRAL = 0
+    SHIP = 1
+    ASTEROIDS = 2
+
 class BasicEntity (EntityInterface):
     nextID = 1
     def __init__(self, x, y, texture_name, radius, life):
@@ -110,6 +119,7 @@ class BasicEntity (EntityInterface):
         self.life_hud = BarUI(self, "life", Color(1.0,0.0,0.0,1.0), Vector2D(0.0, self.radius))
         self.hud_node.AddChild(self.life_hud.node)
         self.active_effects = {}
+        self.group = Group.UNDETERMINED
         self.setupCollisionObject()
 
     def setupCollisionObject(self):
@@ -127,7 +137,7 @@ class BasicEntity (EntityInterface):
         if self.active_effects.has_key(effect.type):
             if effect.unique_in_target:
                 for e in self.active_effects[effect.type]:
-                    e.is_destroyed = True
+                    e.Delete()
             self.active_effects[effect.type].append(effect)
         else:
             self.active_effects[effect.type] = [effect]
@@ -137,6 +147,13 @@ class BasicEntity (EntityInterface):
             for e in effects:
                 if e.is_destroyed:
                     self.active_effects[effectType].remove(e)
+
+    def GetGroup(self):
+        if self.group == Group.UNDETERMINED:
+            if hasattr(self, "parent"):
+                return self.parent.GetGroup()
+            return Group.NEUTRAL
+        return self.group
 
     def Update(self, dt): ###
         self.UpdatePosition(dt)

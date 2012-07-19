@@ -1,6 +1,6 @@
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_base import Color
-from BasicEntity import BasicEntity, CalculateAfterSpeedBasedOnMomentum
+from BasicEntity import BasicEntity, Group, CalculateAfterSpeedBasedOnMomentum
 from Animations import CreateExplosionFromCollision
 from Weapons import Turret
 from ItemFactory import CreatePowerUp
@@ -26,6 +26,7 @@ class Asteroid (BasicEntity):
         r = Asteroid.GetActualRadius(size_factor)
         hp = 120 * size_factor
         BasicEntity.__init__(self, x, y, "images/asteroid%s.png" % (randint(1,3)), r, hp)
+        self.group = Group.ASTEROIDS
         angle = random() * 2 * pi
         self.node.modifier().set_rotation( angle )
         self.has_splitted = False

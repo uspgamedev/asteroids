@@ -1,15 +1,13 @@
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_base import Color, Engine_reference, ResourceManager_CreateTextFromLanguageTag
 from ugdk.ugdk_input import InputManager, K_w, K_a, K_s, K_d, M_BUTTON_LEFT, K_ESCAPE, M_BUTTON_RIGHT
-from BasicEntity import BasicEntity, GetEquivalentValueInRange
+from BasicEntity import BasicEntity, Group, GetEquivalentValueInRange
 from Radio import Radio, SOUND_PATH
 import Weapons
 from BarUI import BarUI, BAR_HEIGHT
 from Shockwave import Shockwave
 from math import pi
 from random import randint
-
-from ugdk.ugdk_graphic import Node
 
 class ShipData:
     def __init__(self, max_life, max_energy, pulse_damage, pulse_shots):
@@ -25,6 +23,7 @@ class ShipData:
 class Ship (BasicEntity):
     def __init__(self, x, y, data):
         BasicEntity.__init__(self, x, y, "images/ship.png", 20.0, data.max_life)
+        self.group = Group.SHIP
         self.radio = Radio()
         self.acceleration = Vector2D(0.0, 0.0)
         self.data = data

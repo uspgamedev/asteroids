@@ -140,6 +140,14 @@ class PulseDamageIncreaseEffect(Effect):
     def Apply(self, dt):
         self.target.data.pulse_damage += self.amount
 
+##################
+class PulseMultiplicityIncreaseEffect(Effect):
+    def __init__(self, amount):
+        Effect.__init__(self, 0)
+        self.amount = amount
+    def Apply(self, dt):
+        self.target.data.pulse_shots += self.amount
+
 #################
 class SatelliteEffect(Effect):
     def __init__(self):
@@ -167,6 +175,11 @@ class SatelliteEffect(Effect):
         if self.is_destroyed:
             self.sat1.is_destroyed = True
             self.sat2.is_destroyed = True
+
+    def Delete(self):
+        self.is_destroyed = True
+        if not self.sat1.is_destroyed: self.sat1.Delete()
+        if not self.sat2.is_destroyed: self.sat2.Delete()
 
 #################
 class ShieldEffect(Effect):
@@ -291,4 +304,5 @@ class FractalShotEffect(Effect):
         dir = dir * ( self.target.velocity.Length()*1.3 )
         depth = randint(2,5)
         shot = Weapons.FractalShot(pos.get_x(), pos.get_y(), dir, depth)
+        shot.SetParent(self.target)
         self.target.new_objects.append(shot)

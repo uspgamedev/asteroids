@@ -40,8 +40,8 @@ def CreateEnergyMaxBoost():
 def CreatePulsePack(x, y):
     powerUps = {
         "Power Boost": CreatePulseDamagePack,
-        "Multiplicity Boost": CreatePulseDamagePack, #<M>#
-        "Homing Boost": CreatePulseDamagePack, #<D>#
+        "Multiplicity Boost": CreatePulseMultiplicityPack,
+        "Homing Boost": CreatePulseMultiplicityPack, #<D>#
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
@@ -50,6 +50,9 @@ def CreatePulsePack(x, y):
 
 def CreatePulseDamagePack():
     return Items.PulseDamageIncreaseEffect(5.0)
+
+def CreatePulseMultiplicityPack():
+    return Items.PulseMultiplicityIncreaseEffect(1)
 
 ####################
 # Passive

@@ -256,7 +256,7 @@ class AsteroidsScene (Scene):
             self.managerScene.difficulty *= 0.85
         elif input.KeyPressed(K_HOME):
             self.managerScene.lives += 1
-            cheat = ItemFactory.CreateInstantPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+            cheat = ItemFactory.CreatePulsePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
             self.AddObject(cheat)
         
             
