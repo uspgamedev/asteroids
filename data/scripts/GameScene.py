@@ -1,7 +1,7 @@
 from ugdk.ugdk_action import Scene, Task
 from ugdk.ugdk_util import CreateBox2D
 from ugdk.pyramidworks_collision import CollisionManager, CollisionInstanceList
-from ugdk.ugdk_input import InputManager, K_ESCAPE, K_HOME, K_PAGEUP, K_PAGEDOWN, K_p, K_SPACE
+from ugdk.ugdk_input import InputManager, K_ESCAPE, K_HOME, K_PAGEUP, K_PAGEDOWN, K_p, K_SPACE, K_1, K_2, K_3, K_4, K_5
 from ugdk.ugdk_base import Engine_reference, ResourceManager_CreateTextFromLanguageTag, Color
 from ugdk.ugdk_drawable import SolidRectangle
 from ugdk.ugdk_graphic import Node
@@ -256,9 +256,21 @@ class AsteroidsScene (Scene):
             self.managerScene.difficulty *= 0.85
         elif input.KeyPressed(K_HOME):
             self.managerScene.lives += 1
+        elif input.KeyPressed(K_1):
+            cheat = ItemFactory.CreateRepairPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+            self.AddObject(cheat)
+        elif input.KeyPressed(K_2):
             cheat = ItemFactory.CreatePulsePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
             self.AddObject(cheat)
-        
+        elif input.KeyPressed(K_3):
+            cheat = ItemFactory.CreatePassivePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+            self.AddObject(cheat)
+        elif input.KeyPressed(K_4):
+            cheat = ItemFactory.CreateActivePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+            self.AddObject(cheat)
+        elif input.KeyPressed(K_5):
+            cheat = ItemFactory.CreateInstantPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+            self.AddObject(cheat)
             
     def HandleCollisions(self):
         collision_list = CollisionInstanceList()

@@ -4,7 +4,7 @@ from ugdk.ugdk_drawable import TexturedRectangle
 from ugdk.ugdk_graphic import Drawable, Node
 from ugdk.pyramidworks_collision import CollisionObject, CollisionLogic
 from ugdk.pyramidworks_geometry import Circle
-from BasicEntity import BasicEntity, EntityInterface, BasicColLogic, getCollisionManager
+from BasicEntity import BasicEntity, EntityInterface, Group, BasicColLogic, getCollisionManager
 import Config
 import Shockwave
 import Animations
@@ -306,3 +306,77 @@ class FractalShotEffect(Effect):
         shot = Weapons.FractalShot(pos.get_x(), pos.get_y(), dir, depth)
         shot.SetParent(self.target)
         self.target.new_objects.append(shot)
+
+###################
+class UpdateExchangerEffect(Effect):
+    def __init__(self, lifetime, new_Update):
+        Effect.__init__(self, lifetime)
+        self.new_Update = new_Update
+        self.real_Update = None
+        self.applied = False
+        self.effect_attr = None
+        self.unique_in_target = True
+
+    def Apply(self, dt):
+        if not self.applied:
+            self.applied = True
+            self.real_Update = self.target.Update
+            def updateOverwrite(object, dt):
+                args = [object, dt, self.real_Update, self.effect_attr]
+                try:
+                    self.new_Update(*args)
+                except:
+                    self.new_Update(object, dt)
+            self.target.Update = updateOverwrite
+
+    def Update(self, dt):
+        Effect.Update(self, dt)
+        if self.is_destroyed and self.applied:
+            self.target.Update = self.real_Update
+
+    def Delete(self):
+        self.is_destroyed = True
+        if self.applied:
+            self.target.Update = self.real_Update
+
+#################
+class FreezeEffect(Effect):
+    def __init__(self, freeze_time):
+        Effect.__init__(self, 0)
+        self.freeze_time = freeze_time
+
+    def Apply(self, dt):
+        scene = Engine_reference().CurrentScene()
+        for obj in scene.objects:
+            if hasattr(obj, "GetGroup") and obj.GetGroup() != self.target.GetGroup() and obj.GetGroup() != Group.NEUTRAL:
+                e = UpdateExchangerEffect(self.freeze_time, FreezeEffect.FreezeUpdate)
+                e.SetTarget(obj)
+                obj.ApplyEffect(e)
+
+    @staticmethod
+    def FreezeUpdate(self, dt):
+        if hasattr(self, "life_hud"):
+            self.life_hud.Update()
+        elif hasattr(self, "energy_hud"):
+            self.energy_hud.Update()
+
+#################
+class SlowdownEffect(Effect):
+    def __init__(self, slowdown_time, slowdown_percent):
+        Effect.__init__(self, 0)
+        self.slowdown_time = slowdown_time
+        self.slowdown_percent = slowdown_percent
+
+    def Apply(self, dt):
+        scene = Engine_reference().CurrentScene()
+        for obj in scene.objects:
+            if hasattr(obj, "GetGroup") and obj.GetGroup() != self.target.GetGroup() and obj.GetGroup() != Group.NEUTRAL:
+                e = UpdateExchangerEffect(self.slowdown_time, SlowdownEffect.SlowdownUpdate)
+                e.effect_attr = self.slowdown_percent
+                e.SetTarget(obj)
+                obj.ApplyEffect(e)
+
+    @staticmethod
+    def SlowdownUpdate(self, dt, real_Update, effect_attr):
+        actual_dt = dt * effect_attr
+        real_Update(actual_dt)

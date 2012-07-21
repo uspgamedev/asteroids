@@ -109,8 +109,8 @@ def CreateHyperspacePack():
 def CreateInstantPack(x, y):
     powerUps = {
         "Explosion": CreateExplosionPack,
-        "Freeze": CreateFractalShotPack, #<M>#
-        "Slowdown": CreateFractalShotPack, #<T>#
+        "Freeze": CreateFreezePack,
+        "Slowdown": CreateSlowdownPack,
         "Fractal Shot": CreateFractalShotPack,
         "Fracture": CreateFracturePack,
     }
@@ -121,6 +121,12 @@ def CreateInstantPack(x, y):
 
 def CreateExplosionPack():
     return Items.ShockwaveEffect(2.0, [5.0, 300.0], 100.0, 1.0)
+
+def CreateFreezePack():
+    return Items.FreezeEffect(10.0)
+
+def CreateSlowdownPack():
+    return Items.SlowdownEffect(10.0, 0.25)
 
 def CreateFractalShotPack():
     return Items.FractalShotEffect()
