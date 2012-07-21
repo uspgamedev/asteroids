@@ -249,6 +249,46 @@ class ItemAttractorEffect(Effect):
             coltarget.ApplyVelocity(v)
 
 ####################
+class MatterAbsorptionEffect(Effect):
+    def __init__(self, duration, life_absorbed_percent, energy_absorbed_percent):
+        Effect.__init__(self, duration)
+        self.life_absorbed_percent = life_absorbed_percent
+        self.energy_absorbed_percent = energy_absorbed_percent
+        self.is_collidable = True
+        self.unique_in_target = True
+        self.collision_object = CollisionObject(getCollisionManager(), self)
+        self.collision_object.InitializeCollisionClass("PowerUp")
+        self.geometry = Circle(1.0)
+        self.geometry.thisown = 0
+        self.collision_object.set_shape( self.geometry )
+
+    def OnSceneAdd(self, scene):
+        self.radius = self.target.radius * 1.1
+        self.size = Vector2D(self.radius*2, self.radius*2)
+        texture_name = "images/shockwave.png"
+        texture_obj = Engine_reference().resource_manager().texture_container().Load(texture_name, texture_name)
+
+        self.shape = TexturedRectangle( texture_obj, self.size )
+        self.shape.set_hotspot(Drawable.CENTER)
+        self.node.set_drawable(self.shape)
+        self.node.modifier().set_alpha(0.5)
+
+        self.geometry = Circle(self.radius)
+        self.collision_object.set_shape(self.geometry)
+        self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
+        
+    def Apply(self, dt):
+        self.node.modifier().set_offset( self.target.GetPos() )
+
+    def HandleCollision(self, coltarget):
+        if hasattr(coltarget, "GetGroup") and coltarget.GetGroup() != self.target.GetGroup() and coltarget.GetGroup() != Group.NEUTRAL:
+            if coltarget.CheckType("Asteroid"):
+                self.target.Heal(coltarget.life * self.life_absorbed_percent)
+            elif coltarget.CheckType("Projectile"):
+                self.target.RestoreEnergy(coltarget.GetDamage(self.target.type) * self.energy_absorbed_percent)
+            coltarget.TakeDamage(coltarget.life + 10)
+
+####################
 class WeaponPickupEffect(Effect):
     def __init__(self, weapon):
         Effect.__init__(self, 0)

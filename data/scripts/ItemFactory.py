@@ -62,7 +62,7 @@ def CreatePassivePack(x, y):
         "Satellites": CreateSatellitePack,
         "Force Shield": CreateShieldPack,
         "Item Attractor": CreateItemAttractorPack,
-        "Matter Absorption": CreateSatellitePack, #<M>#
+        "Matter Absorption": CreateMatterAbsorptionPack,
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
@@ -77,6 +77,9 @@ def CreateShieldPack():
 
 def CreateItemAttractorPack():
     return Items.ItemAttractorEffect(60.0, 320.0, 15.0)
+
+def CreateMatterAbsorptionPack():
+    return Items.MatterAbsorptionEffect(30.0, 0.25, 0.25)
 
 ####################
 # Active
