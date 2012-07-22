@@ -69,8 +69,8 @@ class Asteroid (BasicEntity):
                 ast.ApplyVelocity(v)
                 self.new_objects.append(ast)
             ###
-            lifepack = CreatePowerUp(self.GetPos().get_x(), self.GetPos().get_y())
-            self.new_objects.append(lifepack)
+            #lifepack = CreatePowerUp(self.GetPos().get_x(), self.GetPos().get_y())
+            #self.new_objects.append(lifepack)
             self.is_destroyed = True
 
     def GetDamage(self, obj_type):

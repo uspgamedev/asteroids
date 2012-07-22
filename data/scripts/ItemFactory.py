@@ -87,9 +87,9 @@ def CreateMatterAbsorptionPack():
 def CreateActivePack(x, y):
     powerUps = {
         "Anti Grav Shield": CreateAntiGravShieldPack,
-        "Laser": CreateShockBombPack, #<VMT>#
+        "Laser": CreateBlackholePack, #<VMT>#
         "Shock Bomb": CreateShockBombPack,
-        "Blackhole": CreateShockBombPack, #<M>#
+        "Blackhole": CreateBlackholePack,
         "Hyperspace": CreateHyperspacePack,
     }
     choice = random.choice(powerUps.keys())
@@ -102,6 +102,9 @@ def CreateAntiGravShieldPack():
 
 def CreateShockBombPack():
     return Items.WeaponPickupEffect( Weapons.ShockBomb() )
+
+def CreateBlackholePack():
+    return Items.WeaponPickupEffect( Weapons.BlackholeWeapon(30.0) )
 
 def CreateHyperspacePack():
     return Items.WeaponPickupEffect( Weapons.Hyperspace() )

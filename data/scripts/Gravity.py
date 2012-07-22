@@ -1,9 +1,13 @@
 from ugdk.ugdk_math import Vector2D
 from ugdk.pyramidworks_collision import CollisionObject, CollisionLogic
 from ugdk.pyramidworks_geometry import Circle
+from ugdk.ugdk_base import Engine_reference
+from ugdk.ugdk_drawable import TexturedRectangle
+from ugdk.ugdk_graphic import Drawable
 from BasicEntity import EntityInterface, BasicColLogic, getCollisionManager
 from random import randint, shuffle
 from math import pi
+import Config
 
 # Factor to which multiply the gravity force.
 # just a configurational value to fine tune the gravity, in case you want
@@ -67,7 +71,42 @@ class GravityWell (EntityInterface):
 
         target.ApplyVelocity(grav_vec)
         
-        
+class Blackhole (GravityWell):
+    def __init__(self, x, y, radius, lifetime):
+        GravityWell.__init__(self, x, y, radius)
+        self.mass = GetMassByRadius(radius, 120.0)
+        self.radius = Config.gamesize.Length()
+        self.geometry.set_radius(self.radius)
+        self.lifetime = lifetime
+        self.elapsed_time = 0.0
+        self.hole_radius = radius
+        self.angle = 0.0
+        self.size = Vector2D(self.hole_radius*2, self.hole_radius*2)
+        texture_obj = Engine_reference().resource_manager().texture_container().Load("images/blackhole.png", "images/blackhole.png")
+        self.shape = TexturedRectangle( texture_obj, self.size )
+        self.shape.set_hotspot(Drawable.CENTER)
+        self.node.set_drawable(self.shape)
+
+    def Update(self, dt):
+        GravityWell.Update(self, dt)
+        self.angle += dt * pi
+        if self.angle > 2*pi:   self.angle -= 2*pi
+        self.node.modifier().set_rotation(self.angle)
+        if self.lifetime > 0:
+            self.elapsed_time += dt
+            if self.elapsed_time > self.lifetime:
+                self.Delete()
+    
+    def HandleCollision(self, target):
+        target_dist = (self.GetPos() - target.GetPos()).Length()
+        if target.CheckType("Planet"):
+            target.TakeDamage(0.25 * ((self.radius-target_dist)/self.radius))
+        GravityWell.HandleCollision(self, target)
+        if not target.id in self.ignore_ids and target_dist < self.hole_radius:
+            if target.CheckType("Asteroid"):
+                target.velocity = target.velocity * 0.1
+            target.TakeDamage(target.life + 10)
+         
 ########
 ################################################################
 #  The Gravity Constant

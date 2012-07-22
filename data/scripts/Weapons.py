@@ -3,6 +3,7 @@ from ugdk.ugdk_base import Engine_reference, Color
 from BasicEntity import BasicEntity, RangeCheck, GetEquivalentValueInRange
 from Animations import CreateExplosionFromCollision
 import Shockwave
+import Gravity
 
 from random import random, randint
 from math import pi, ceil
@@ -45,6 +46,7 @@ class Projectile (BasicEntity):
         self.lifetime -= dt
         if self.lifetime <= 0:
             #gotta destroy this thing
+            self.CallOnHitEvents(None)
             self.is_destroyed = True
 
     def SetParent(self, parent):
@@ -329,9 +331,45 @@ class ShockBomb(Weapon):
         self.parent.new_objects.append(wave)
 
 #########
-class Blackhole(Weapon):
-    def __init__(self):
-        pass
+class BlackholeWeapon(Weapon):
+    def __init__(self, blackhole_duration):
+        self.energy_cost = 100.0
+        self.projectile_speed = 170.0
+        self.can_shoot = True
+        self.blackhole_duration = blackhole_duration
+
+    def Toggle(self, active, dt):
+        if active and self.can_shoot:
+            self.can_shoot = False
+            mouse_dir = Engine_reference().input_manager().GetMousePosition() - self.parent.GetPos()
+            mouse_dir = mouse_dir.Normalize()
+            return self.Shoot(mouse_dir)
+        elif not active:
+            self.can_shoot = True
+        return False
+ 
+    def Shoot(self, direction):
+        if self.parent.energy < self.energy_cost:    return False
+        self.parent.TakeEnergy(self.energy_cost)
+        power = 1.0
+        pos = self.parent.GetPos()
+        dir = direction.Normalize() * 1.15 * (self.parent.radius + Projectile.GetActualRadius(power))
+        pos = pos + dir
+        vel = self.parent.velocity + (direction.Normalize() * self.projectile_speed)
+        proj = Projectile(pos.get_x(), pos.get_y(), vel, power, 1.0, True)
+        proj.SetParent(self.parent)
+        proj.AddOnHitEvent(self.BlackholeDetonation)
+        proj.node.modifier().set_color( Color(0.1, 0.1, 0.1, 1.0) )
+        proj.lifetime = 4.0
+        self.parent.new_objects.append(proj)
+        self.parent.radio.PlaySound("fire.wav")
+        return True
+
+    def BlackholeDetonation(self, projectile, target):
+        pos = projectile.GetPos()
+        bh = Gravity.Blackhole(pos.get_x(), pos.get_y(), 50.0, self.blackhole_duration)
+        bh.AddIDToIgnoreList(self.parent.id)
+        self.parent.new_objects.append(bh)
 
 #########
 class Hyperspace(Weapon):
