@@ -296,12 +296,11 @@ RegisterType_CollisionObject = _pyramidworks_collision.RegisterType_CollisionObj
 def GetNull_CollisionObject():
   return _pyramidworks_collision.GetNull_CollisionObject()
 GetNull_CollisionObject = _pyramidworks_collision.GetNull_CollisionObject
-print "Python pyramidworks_collision confirm exports!"
 module = __import__(__name__)
 for key,value in module.__dict__.items():
-	if key.startswith("RegisterType_"):
-		arg = module.__dict__["GetNull_"+key[13:] ]()
-		value(arg)
+    if key.startswith("RegisterType_"):
+        arg = module.__dict__["GetNull_"+key[13:] ]()
+        value(arg)
 
 # This file is compatible with both classic and new-style classes.
 

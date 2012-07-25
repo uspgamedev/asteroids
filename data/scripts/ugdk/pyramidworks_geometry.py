@@ -155,12 +155,11 @@ RegisterType_Rect = _pyramidworks_geometry.RegisterType_Rect
 def GetNull_Rect():
   return _pyramidworks_geometry.GetNull_Rect()
 GetNull_Rect = _pyramidworks_geometry.GetNull_Rect
-print "Python pyramidworks_geometry confirm exports!"
 module = __import__(__name__)
 for key,value in module.__dict__.items():
-	if key.startswith("RegisterType_"):
-		arg = module.__dict__["GetNull_"+key[13:] ]()
-		value(arg)
+    if key.startswith("RegisterType_"):
+        arg = module.__dict__["GetNull_"+key[13:] ]()
+        value(arg)
 
 # This file is compatible with both classic and new-style classes.
 
