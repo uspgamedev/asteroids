@@ -56,8 +56,12 @@ class StatsUI:
         #self.node.thisown = 0
         self.backShape = SolidRectangle( Vector2D(150.0, 75.0) )
         self.backShape.set_color( backColor )
-        self.node.set_drawable( self.backShape )
-        self.node.modifier().set_alpha(backAlpha)
+        self.backNode = Node()
+        self.backNode.set_drawable( self.backShape )
+        color = self.backNode.modifier().color()
+        color.set_a(backAlpha)
+        self.backNode.modifier().set_color(color)
+        self.node.AddChild(self.backNode)
         self.node.modifier().set_offset( Vector2D(x,y) )
         
         self.texts = []

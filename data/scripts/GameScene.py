@@ -297,7 +297,9 @@ class PauseScene (Scene):
         rect = SolidRectangle(screenSize)
         rect.set_color( Color(0.5, 0.5, 0.5) )
         self.backNode = Node(rect)
-        self.backNode.modifier().set_alpha(0.5)
+        color = self.backNode.modifier().color()
+        color.set_a(0.5)
+        self.backNode.modifier().set_color(color)
         self.content_node().AddChild(self.backNode)
 
         text = ResourceManager_CreateTextFromLanguageTag("Pause")

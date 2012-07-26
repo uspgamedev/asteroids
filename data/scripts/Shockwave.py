@@ -21,7 +21,9 @@ class Shockwave (GravityWell):
         self.shape = TexturedRectangle( texture_obj, self.size )
         self.shape.set_hotspot(Drawable.CENTER)
         self.node.set_drawable(self.shape)
-        self.node.modifier().set_alpha(0.5)
+        color = self.node.modifier().color()
+        color.set_a(0.5)
+        self.node.modifier().set_color(color)
         self.scale_range = [1.0, radius_range[1]/radius_range[0]]
         self.affected_targets = []
         self.shock_damage = 30.0    # done once when shockwave hits a target
