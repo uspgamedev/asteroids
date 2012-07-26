@@ -204,7 +204,7 @@ class BasicEntity (EntityInterface):
     def ApplyCollisionRollback(self):
         pos = self.GetPos()
         v = self.last_velocity
-        if v == None:   v = self.velocity
+        if not v:   v = self.velocity
         pos = pos + (v * -self.last_dt)
         self.HandleMapBoundaries(pos)
         pos = pos + (self.velocity * self.last_dt)

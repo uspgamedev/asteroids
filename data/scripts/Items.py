@@ -61,7 +61,9 @@ class PowerUp (BasicEntity):
             self.wasApplied = True
             self.lifetime = 3.0
             self.textNode.set_active(True)
-            self.node.modifier().set_alpha(0.2)
+            color = self.node.modifier().color()
+            color.set_a(0.2)
+            self.node.modifier().set_color(color)
             self.node.set_active(True)
             #TODO: play powerup sound !
 
