@@ -75,9 +75,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Language Setup FAILURE!!\n\n");
     }
 
-    VirtualObj animations = SCRIPT_MANAGER()->LoadModule("Animations");
-    animations["InitializeSpritesheets"]();
-
     VirtualObj scene_script = SCRIPT_MANAGER()->LoadModule("GameScene");
     {
         VirtualObj first_scene = scene_script["StartupScene"]();
