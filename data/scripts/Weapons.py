@@ -461,16 +461,16 @@ class LaserBeam(EntityInterface,Observer):
         self.parent = parent
         self.damage_per_sec = damage_per_sec
         self.delta_t = 0.0
-
-        self.node.modifier().set_rotation(pi/2.0)
-        self.node.modifier().set_offset( Vector2D(0.0, -self.BEAM_LENGTH/2.0) )
         
         scaleX = self.BEAM_LENGTH / self.sprite.size().get_x()
         scaleY = self.beam_width / self.sprite.size().get_y()
         print "Scaling Laser Beam. Scale=(%s, %s) SpriteSize=(%s, %s)" % (scaleX, scaleY, self.sprite.size().get_x(), self.sprite.size().get_y())
         self.node.modifier().set_scale( Vector2D(scaleX, scaleY) )
-        self.parent.node.AddChild(self.node)
 
+        self.node.modifier().set_rotation(pi/2.0)                               ### comment these functions to make the entity's node
+        self.node.modifier().set_offset( Vector2D(0.0, -self.BEAM_LENGTH/2.0) ) ### be a child of the scene
+        self.parent.node.AddChild(self.node)                                    ### 
+        
         self.setupCollisionObject()
 
     def setupCollisionObject(self):
@@ -481,8 +481,8 @@ class LaserBeam(EntityInterface,Observer):
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
         self.collision_object.thisown = 0
 
-    def GetNode(self):  return None
-    def GetHUDNode(self):   return None
+    def GetNode(self):  return None      ### comment these functions to make the entity's node
+    def GetHUDNode(self):   return None  ### be a child of the scene
 
     def GetVertices(self):
         pos = self.parent.GetPos()
@@ -502,9 +502,9 @@ class LaserBeam(EntityInterface,Observer):
 
     def Update(self, dt):
         self.delta_t = dt
-
-        #self.node.modifier().set_rotation(self.GetDirection().Angle() + pi/2.0)
-        #self.node.modifier().set_offset( self.parent.GetPos() + (self.GetDirection()*self.BEAM_LENGTH/2.0) )
+        
+        #self.node.modifier().set_rotation(self.GetDirection().Angle() + pi/2.0)                              ### uncomment these lines to make the entity's node
+        #self.node.modifier().set_offset( self.parent.GetPos() + (self.GetDirection()*self.BEAM_LENGTH/2.0) ) ### be a child of the scene
 
         self.UpdateVertices()
 
@@ -519,3 +519,5 @@ class LaserBeam(EntityInterface,Observer):
     def HandleCollision(self, target):
         if hasattr(target, "GetGroup") and target.GetGroup() != self.parent.GetGroup() and target.GetGroup() != Group.NEUTRAL:
             target.TakeDamage(self.damage_per_sec * self.delta_t)
+        elif target.CheckType("Planet"):
+            target.TaleDamage(self.damage_per_sec * self.delta_t / 2.0)
