@@ -20,7 +20,7 @@ def StartupScene():
     #print "GOING TO PUSH SCENE"
     Engine_reference().PushScene( cena )
     return cena
-    
+
 
 class ManagerScene (Scene):
     IDLE = 0
@@ -122,6 +122,7 @@ class AsteroidsScene (Scene):
         self.collisionManager.Generate("Gravity")
         self.collisionManager.Generate("PowerUp")
         self.collisionManager.Generate("RangeCheck")
+        self.collisionManager.Generate("Beam")
 
     def GetHero(self):  return self.hero
 
@@ -137,10 +138,12 @@ class AsteroidsScene (Scene):
             obj.collision_object.StartColliding()
         self.AddEntity(obj)
         #print self, "GOING TO ADD OBJECT %s [node=%s]" % (obj, obj.node)
-        CN = self.content_node()
-        CN.AddChild(obj.node)
+        if obj.GetNode() != None:
+            CN = self.content_node()
+            CN.AddChild(obj.GetNode())
         #print "SCENE CONTENT NODE = ", CN
-        self.hud.AddChild(obj.hud_node)
+        if obj.GetHUDNode():
+            self.hud.AddChild(obj.hud_node)
         #print "FINISHED ADDING OBJECT"
         if obj.CheckType("Asteroid"):
             self.asteroid_count += 1
@@ -159,14 +162,17 @@ class AsteroidsScene (Scene):
         self.objects.remove(obj)
         if obj in self.colliding_objects:
             self.colliding_objects.remove(obj)
-            obj.collision_object.StopColliding()
         self.RemoveEntity(obj)
+        obj.to_be_removed = True
         #print "REMOVING OBJECT %s [%s]" % (obj, obj.node)
+        if obj.collision_object != None:
+            obj.collision_object.StopColliding()
         obj.node.thisown = 1
         del obj.node
         obj.hud_node.thisown = 1
         del obj.hud_node
         del obj
+        
         
     def GenerateMap(self, heroData):
         #print "GENERATE MARK 1"
@@ -215,18 +221,8 @@ class AsteroidsScene (Scene):
     def DeFocus(self):
         pass
 
-    def Update(self, dt):  ###
-        to_delete = []
-        for obj in self.objects:
-            if len(obj.new_objects) > 0:
-                self.Populate(obj.new_objects)
-                obj.new_objects = []
-                
-            if obj.is_destroyed:
-                to_delete.append(obj)
-            elif obj.is_collidable:
-                obj.collision_object.MoveTo(obj.GetPos())
-                
+    def Update(self, dt):  ###   
+        to_delete = [o for o in self.objects if o.is_destroyed]
         for obj in to_delete:
             self.RemoveObject(obj)
             

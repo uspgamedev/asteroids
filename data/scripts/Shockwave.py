@@ -43,7 +43,7 @@ class Shockwave (GravityWell):
         self.SetRadius(r)
         if self.lifetime > self.max_lifetime:
             #gotta destroy this thing
-            self.is_destroyed = True
+            self.Delete()
             #print self, "is ending..."
             
     def HandleCollision(self, target):

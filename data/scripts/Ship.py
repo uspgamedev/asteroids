@@ -36,7 +36,7 @@ class Ship (BasicEntity):
         self.hud_node.AddChild(self.energy_hud.node)
 
         self.pulse_weapon = Weapons.Pulse()
-        self.right_weapon = Weapons.ShockBomb() #AntiGravShield(35)
+        self.right_weapon = Weapons.Laser() #Weapons.ShockBomb() #AntiGravShield(35)
         self.pulse_weapon.Activate(self)
         self.right_weapon.Activate(self)
 
@@ -151,9 +151,9 @@ class Satellite(BasicEntity):
 
     def Update(self, dt):
         if self.parent.is_destroyed:
-            self.is_destroyed = True
+            self.Delete()
             return
-        self.node.modifier().set_offset(self.CalculateOrbitPos() )
+        self.SetPos(self.CalculateOrbitPos() )
         self.orbit_angle += self. angle_speed * dt
         if self.orbit_angle > 2*pi:
             self.orbit_angle -= 2*pi

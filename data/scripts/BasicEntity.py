@@ -17,18 +17,22 @@ def getCollisionManager():
     #print "Getting COLLISION MANAGER from ", scene
     return scene.collisionManager
 
+def AddNewObjectToScene(obj):
+    scene = Engine_reference().CurrentScene()
+    scene.AddObject(obj)
+
 class EntityInterface (Entity):
     nextID = 1
     def __init__(self, x, y, radius):
         self.radius = radius
-        self.hud_node = Node()
-
-        self.node = Node()
-        self.node.modifier().set_offset( Vector2D(x,y) )
-
-        self.new_objects = []
         self.is_destroyed = False
+        self.to_be_removed = False
         self.is_collidable = True
+        self.collision_object = None
+
+        self.hud_node = Node()
+        self.node = Node()
+        self.SetPos( Vector2D(x,y) )
 
         # Calculating Type
         self.type = str(self.__class__)
@@ -46,8 +50,17 @@ class EntityInterface (Entity):
     def ClearNewObjects(self):
         self.new_objects = []
 
+    def GetNode(self):  return self.node
+    def GetHUDNode(self):   return self.hud_node
+
     def GetPos(self):
         return self.node.modifier().offset()
+
+    def SetPos(self, pos):
+        if self.node == None:   return
+        self.node.modifier().set_offset(pos)
+        if self.collision_object != None:
+            self.collision_object.MoveTo(pos)
 
     def GetDirection(self):
         return Vector2D(0.0, 1.0)
@@ -77,7 +90,8 @@ class EntityInterface (Entity):
         print self.type, " HandleCollision NOT IMPLEMENTED"
         
     def Delete(self):
-        self.is_destroyed = True
+        if self.is_destroyed:   return
+        self.is_destroyed = True        
 
     def __repr__(self):
         return "<%s #%s>" % (self.type, self.id)
@@ -133,7 +147,7 @@ class BasicEntity (EntityInterface):
 
     def ApplyEffect(self, effect):
         #since effects are entities too, we just do this
-        self.new_objects.append(effect)
+        AddNewObjectToScene(effect)
         if self.active_effects.has_key(effect.type):
             if effect.unique_in_target:
                 for e in self.active_effects[effect.type]:
@@ -168,7 +182,7 @@ class BasicEntity (EntityInterface):
         self.last_velocity = self.velocity
         self.last_dt = dt
         self.HandleMapBoundaries(pos)
-        self.node.modifier().set_offset(pos)
+        self.SetPos(pos)
         self.hud_node.modifier().set_offset(pos)
 
     def GetDirection(self):
@@ -188,7 +202,7 @@ class BasicEntity (EntityInterface):
             sound = Engine_reference().audio_manager().LoadSample(SOUND_PATH + sound_name)
             sound.Play()
         if self.life <= 0:
-            self.is_destroyed = True
+            self.Delete()
         #print self, "took %s damage, current life = %s [max life =%s]" % (damage, self.life, self.max_life)
 
     def Heal(self, amount):
@@ -202,6 +216,7 @@ class BasicEntity (EntityInterface):
         self.velocity = self.velocity + v
 
     def ApplyCollisionRollback(self):
+        if self.is_destroyed:   return
         pos = self.GetPos()
         v = self.last_velocity
         if not v:   v = self.velocity
@@ -209,7 +224,7 @@ class BasicEntity (EntityInterface):
         self.HandleMapBoundaries(pos)
         pos = pos + (self.velocity * self.last_dt)
         self.HandleMapBoundaries(pos)
-        self.node.modifier().set_offset(pos)
+        self.SetPos(pos)
         self.last_velocity = self.velocity
     
 ####################
@@ -240,14 +255,14 @@ class RangeCheck(EntityInterface):
     
     def AttachToEntity(self, ent):
         self.parent = ent
-        self.parent.new_objects.append(self)
+        AddNewObjectToScene(self)
 
     def Update(self, dt):
         if self.parent != None:
             if self.parent.is_destroyed:
-                self.is_destroyed = True
+                self.Delete()
             else:
-                self.node.modifier().set_offset(self.parent.GetPos())
+                self.SetPos(self.parent.GetPos())
         if self.target != None and self.target.is_destroyed:
             self.target = None
             self.dist = -1.0

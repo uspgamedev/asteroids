@@ -2,7 +2,7 @@ from ugdk.ugdk_base import Engine_reference
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_drawable import Sprite
 from ugdk.ugdk_action import Observer
-from BasicEntity import EntityInterface
+from BasicEntity import EntityInterface, AddNewObjectToScene
 from random import random
 from math import pi
 
@@ -11,7 +11,7 @@ class EndObserver (Observer):
         self.animent = animent
     def Tick(self):
         if self.animent != None:
-            self.animent.is_destroyed = True
+            self.animent.Delete()
             self.animent = None
         
 class AnimationEntity (EntityInterface):
@@ -42,7 +42,7 @@ def CreateExplosionFromCollision(ent, target, radius):
     posX = pos.get_x()
     posY = pos.get_y()
     sprite_ent = AnimationEntity(posX, posY, sprite, radius)
-    ent.new_objects.append(sprite_ent)
+    AddNewObjectToScene(sprite_ent)
     return sprite_ent
 
 def CreateExplosionAtLocation(pos, radius):

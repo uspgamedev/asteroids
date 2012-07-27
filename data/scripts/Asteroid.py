@@ -1,6 +1,6 @@
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_base import Color
-from BasicEntity import BasicEntity, Group, CalculateAfterSpeedBasedOnMomentum
+from BasicEntity import BasicEntity, Group, CalculateAfterSpeedBasedOnMomentum, AddNewObjectToScene
 from Animations import CreateExplosionFromCollision
 from Weapons import Turret
 from ItemFactory import CreatePowerUp
@@ -43,12 +43,6 @@ class Asteroid (BasicEntity):
             self.turret.Update(dt)
         self.collidedWithAsteroids = []
 
-    def TakeDamage(self, damage):
-        BasicEntity.TakeDamage(self, damage)
-        # if we're big enough, split asteroid when we are destroyed.
-        if self.is_destroyed:
-            self.Break()
-
     def Break(self):
         if self.size_factor > 0.4 and not self.has_splitted:
             self.has_splitted = True
@@ -67,11 +61,10 @@ class Asteroid (BasicEntity):
                 speed = self.velocity.Length()
                 v = v * (randint(int(speed*0.60), int(speed*1.40)))
                 ast.ApplyVelocity(v)
-                self.new_objects.append(ast)
+                AddNewObjectToScene(ast)
             ###
             #lifepack = CreatePowerUp(self.GetPos().get_x(), self.GetPos().get_y())
-            #self.new_objects.append(lifepack)
-            self.is_destroyed = True
+            #AddNewObjectToScene(lifepack)
 
     def GetDamage(self, obj_type):
         if obj_type == self.type:
@@ -88,7 +81,8 @@ class Asteroid (BasicEntity):
         #print "%s IS COLLIDING WITH %s" % (self, target)
         if target.CheckType("Asteroid") and not target.id in self.collidedWithAsteroids:
             target.collidedWithAsteroids.append(self.id)
-            
+            CreateExplosionFromCollision(self, target, self.radius*0.7)
+
             self.ApplyCollisionRollback()
             target.ApplyCollisionRollback()
             aux = self.velocity
@@ -109,24 +103,29 @@ class Asteroid (BasicEntity):
 
             self.TakeDamage(target.GetDamage(self.type))
             target.TakeDamage(self.GetDamage(target.type))
-            CreateExplosionFromCollision(self, target, self.radius*0.7)
             #print "Asteroid collided with asteroid"
         elif target.CheckType("Ship"):
+            CreateExplosionFromCollision(self, target, (self.radius+target.radius)/2.0)
             target.TakeDamage(self.GetDamage(target.type))
             target.ApplyVelocity(self.velocity * 0.5)
             self.TakeDamage(self.life + 10) #just to make sure we die and split LOL
-            CreateExplosionFromCollision(self, target, (self.radius+target.radius)/2.0)
             #print "Asteroid damaging ", target.type
         elif target.CheckType("Planet"):
+            CreateExplosionFromCollision(self, target, target.radius*1.2)
             target.TakeDamage(self.GetDamage(target.type))
             self.is_destroyed = self.has_splitted = True # WE CANNOT SPLIT when colliding with a planet =P
-            CreateExplosionFromCollision(self, target, target.radius*1.2)
             self.diedFromPlanet = True
             #print "Asteroid damaging ", target.type
         elif target.CheckType("Satellite"):
+            CreateExplosionFromCollision(self, target, (self.radius+target.radius)/2.0)
             target.TakeDamage(self.GetDamage(target.type))
             self.TakeDamage(self.life + 10) #just to make sure we die and split LOL
-            CreateExplosionFromCollision(self, target, (self.radius+target.radius)/2.0)
+            
 
         #No handler for projectile since that is strictly
         #"do it only one time", and Projectile will handle it
+
+    def Delete(self):
+        if not self.is_destroyed:
+            self.Break()
+        BasicEntity.Delete(self)

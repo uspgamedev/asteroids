@@ -4,7 +4,7 @@ from ugdk.ugdk_drawable import TexturedRectangle
 from ugdk.ugdk_graphic import Drawable, Node
 from ugdk.pyramidworks_collision import CollisionObject, CollisionLogic
 from ugdk.pyramidworks_geometry import Circle
-from BasicEntity import BasicEntity, EntityInterface, Group, BasicColLogic, getCollisionManager
+from BasicEntity import BasicEntity, EntityInterface, Group, BasicColLogic, getCollisionManager, AddNewObjectToScene
 import Config
 import Shockwave
 import Animations
@@ -52,7 +52,7 @@ class PowerUp (BasicEntity):
                 self.blink_time = 0.0
                 self.node.set_active( not self.node.active() )
         if self.lifetime < 0:
-            self.is_destroyed = True
+            self.Delete()
 
     def HandleCollision(self, target):
         if target.CheckType("Ship") and not self.wasApplied:
@@ -81,7 +81,7 @@ class Effect (EntityInterface):
             self.Apply(dt)
         self.lifetime -= dt
         if self.lifetime < 0 or (self.target != None and self.target.is_destroyed):
-            self.is_destroyed = True
+            self.Delete()
 
     def SetTarget(self, target):
         self.target = target
@@ -161,13 +161,13 @@ class SatelliteEffect(Effect):
     def OnSceneAdd(self, scene):
         self.sat1 = Ship.Satellite(self.target, 100, pi/2.0)
         self.sat2 = Ship.Satellite(self.target, 100, 3*pi/2.0)
-        self.target.new_objects.append(self.sat1)
-        self.target.new_objects.append(self.sat2)
+        AddNewObjectToScene(self.sat1)
+        AddNewObjectToScene(self.sat2)
 
     def Apply(self, dt):
         if (self.sat1.is_destroyed and self.sat2.is_destroyed) or self.target.is_destroyed:
-            self.sat1.is_destroyed = True
-            self.sat2.is_destroyed = True
+            self.sat1.Delete()
+            self.sat2.Delete()
             self.lifetime = 0.0
         else:
             self.lifetime = 10.0
@@ -175,11 +175,11 @@ class SatelliteEffect(Effect):
     def Update(self, dt):
         Effect.Update(self,dt)
         if self.is_destroyed:
-            self.sat1.is_destroyed = True
-            self.sat2.is_destroyed = True
+            self.sat1.Delete()
+            self.sat2.Delete()
 
     def Delete(self):
-        self.is_destroyed = True
+        Effect.Delete(self)
         if not self.sat1.is_destroyed: self.sat1.Delete()
         if not self.sat2.is_destroyed: self.sat2.Delete()
 
@@ -214,7 +214,7 @@ class ShieldEffect(Effect):
         
 
     def Apply(self, dt):
-        self.node.modifier().set_offset( self.target.GetPos() )
+        self.SetPos( self.target.GetPos() )
         if self.life > 0 and not self.target.is_destroyed:
             self.lifetime = 10.0
         else:
@@ -241,7 +241,7 @@ class ItemAttractorEffect(Effect):
         self.collision_object.AddCollisionLogic("PowerUp", BasicColLogic(self) )
         
     def Apply(self, dt):
-        self.node.modifier().set_offset( self.target.GetPos() )
+        self.SetPos( self.target.GetPos() )
 
     def HandleCollision(self, coltarget):
         if coltarget.CheckType("PowerUp"): # we can collide with any powerup or collidable effect, however we only affect powerups (the actual item)...
@@ -280,7 +280,7 @@ class MatterAbsorptionEffect(Effect):
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
         
     def Apply(self, dt):
-        self.node.modifier().set_offset( self.target.GetPos() )
+        self.SetPos( self.target.GetPos() )
 
     def HandleCollision(self, coltarget):
         if hasattr(coltarget, "GetGroup") and coltarget.GetGroup() != self.target.GetGroup() and coltarget.GetGroup() != Group.NEUTRAL:
@@ -314,9 +314,9 @@ class ShockwaveEffect(Effect):
         wave.wave_damage = self.wave_damage
         wave.shock_force_factor = 0.4
         wave.AddIDToIgnoreList(self.target.id)
-        self.target.new_objects.append(wave)
+        AddNewObjectToScene(wave)
         exploAnim = Animations.CreateExplosionAtLocation(pos, self.shock_radius_range[1])
-        self.target.new_objects.append(exploAnim)
+        AddNewObjectToScene(exploAnim)
 
 ##################
 class FractureEffect(Effect):
@@ -328,8 +328,8 @@ class FractureEffect(Effect):
         for obj in scene.objects:
             if obj.CheckType("Asteroid"):
                 exploAnim = Animations.CreateExplosionAtLocation(obj.GetPos(), obj.radius)
-                obj.new_objects.append(exploAnim)
-                obj.Break()
+                AddNewObjectToScene(exploAnim)
+                obj.Delete()
 
 ##################
 class FractalShotEffect(Effect):
@@ -347,7 +347,7 @@ class FractalShotEffect(Effect):
         depth = randint(2,5)
         shot = Weapons.FractalShot(pos.get_x(), pos.get_y(), dir, depth)
         shot.SetParent(self.target)
-        self.target.new_objects.append(shot)
+        AddNewObjectToScene(shot)
 
 ###################
 class UpdateExchangerEffect(Effect):
@@ -377,9 +377,10 @@ class UpdateExchangerEffect(Effect):
             self.target.Update = self.real_Update
 
     def Delete(self):
-        self.is_destroyed = True
         if self.applied:
             self.target.Update = self.real_Update
+        Effect.Delete(self)
+        
 
 #################
 class FreezeEffect(Effect):

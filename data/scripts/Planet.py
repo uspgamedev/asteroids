@@ -1,5 +1,5 @@
 from ugdk.ugdk_math import Vector2D
-from BasicEntity import BasicEntity
+from BasicEntity import BasicEntity, AddNewObjectToScene
 from Asteroid import Asteroid
 from Gravity import GravityWell
 from Shockwave import Shockwave
@@ -19,25 +19,25 @@ class Planet (BasicEntity):
         self.has_splitted = False
         self.well = GravityWell(x, y, r)
         self.well.AddIDToIgnoreList(self.id)
-        self.new_objects.append(self.well)
+        AddNewObjectToScene(self.well)
         
     def Update(self, dt):
         BasicEntity.Update(self,dt)
-        self.well.node.modifier().set_offset( self.GetPos() )
+        self.well.SetPos( self.GetPos() )
 
     def TakeDamage(self, damage):
         BasicEntity.TakeDamage(self, damage)
         # if we're big enough, split planet into asteroids when we are destroyed.
         if self.is_destroyed and not self.has_splitted:
             self.has_splitted = True
-            self.well.is_destroyed = True #to assure our gravity well will be deleted with us
+            self.well.Delete() #to assure our gravity well will be deleted with us
             # produce our shockwave before the asteroids since the C++ part pop()'s the objects
             # out of the list, so last objects in self.new_objects are created first.
             pos = self.GetPos()
             #print "Planet cracking down..."
             wave = Shockwave(pos.get_x(), pos.get_y(), 4.0, [self.radius, Config.gamesize.Length() * 0.35])
             wave.AddIDToIgnoreList(self.id)
-            self.new_objects.append(wave)
+            AddNewObjectToScene(wave)
             #print "Shockwave created"
             # and create our 'asteroid parts'
             angles = [0.0, -pi/4.0, -pi/2.0, -3*pi/2.0, pi, 3*pi/2.0, pi/2.0, pi/4.0]
@@ -55,7 +55,7 @@ class Planet (BasicEntity):
                 speed = 50.0
                 v = v * (randint(int(speed*0.60), int(speed*1.40)))
                 ast.ApplyVelocity(v)
-                self.new_objects.append(ast)
+                AddNewObjectToScene(ast)
 
     def GetDamage(self, obj_type):
         return 9000.1 # Vegeta, what does the scouter say about his power level?
@@ -65,15 +65,15 @@ class Planet (BasicEntity):
 
     def HandleCollision(self, target):
         if target.CheckType("Planet"):
-            print "WTF dude, u tripping? Planets colliding with planets? Ya frakking nuts?"
+            #print "WTF dude, u tripping? Planets colliding with planets? Ya frakking nuts?"
             aux = self.velocity
             self.velocity = target.velocity
             target.velocity = aux
             self.ApplyCollisionRollback()
             target.ApplyCollisionRollback()
         elif target.CheckType("Ship"):
-            target.TakeDamage(self.GetDamage(target.type))
             CreateExplosionFromCollision(self, target, target.radius*2)
+            target.TakeDamage(self.GetDamage(target.type))
             #print target.type, "crash landed on Planet... No survivors.     Boo-hoo."
         # Projectiles and Asteroids take care of collising with Planets.
 
