@@ -99,7 +99,7 @@ class SceneFinishTask(Task):
 class AsteroidsScene (Scene):
     def __init__(self, managerScene, difficultyFactor):
         #print "Creating AsteroidsScene"
-        maxval = MapGenerator.MAX_ENTITY_SIZE
+        maxval = Config.MAX_ENTITY_SIZE
         mincoords = [-maxval, -maxval]
         maxcoords = [Config.gamesize.get_x() + maxval,  Config.gamesize.get_y() + maxval]
         self.collisionManager = CollisionManager( CreateBox2D(mincoords[0], mincoords[1], maxcoords[0], maxcoords[1]) )

@@ -9,17 +9,15 @@ import random
 from math import pi
 import Config
 
-MAX_ENTITY_SIZE = 200.0  #in pixels
-
 PERCENT_OF_ENTITIES_IN_MAP_GRID = 0.3
 
-ASTEROID_STARTING_SPEED_RANGE = [20, 90]
+ASTEROID_STARTING_SPEED_RANGE = [40, 110]
 
 PLANET_COUNT_RANGE = [0, 2]
 
 def GetCellCenter(i, j):
-    x = j * MAX_ENTITY_SIZE + (MAX_ENTITY_SIZE/2.0)
-    y = i * MAX_ENTITY_SIZE + (MAX_ENTITY_SIZE/2.0)
+    x = j * Config.MAX_ENTITY_SIZE + (Config.MAX_ENTITY_SIZE/2.0)
+    y = i * Config.MAX_ENTITY_SIZE + (Config.MAX_ENTITY_SIZE/2.0)
     return (x, y)
     
 def GetRandomAsteroidSizeFactor():
@@ -43,8 +41,8 @@ def Generate(difficultyFactor, heroData):
     #
     # this way we have a simple way of knowing where we can place object, with the benefit that
     # at least in theory, they should not be colliding with each other
-    rows = int( screenSize.get_y() / MAX_ENTITY_SIZE )
-    columns = int( screenSize.get_x() / MAX_ENTITY_SIZE )
+    rows = int( screenSize.get_y() / Config.MAX_ENTITY_SIZE )
+    columns = int( screenSize.get_x() / Config.MAX_ENTITY_SIZE )
 
     # WHAT SORCERY IS THIS?!?
     map_row = [False] * columns
@@ -81,7 +79,7 @@ def Generate(difficultyFactor, heroData):
         ast = Asteroid(loc[0], loc[1], GetRandomAsteroidSizeFactor()*difficultyFactor)
         v = Vector2D(1,0).Rotate( random.random() * 2 * pi )
         v = v.Normalize()
-        v = v * (random.randint(ASTEROID_STARTING_SPEED_RANGE[0], ASTEROID_STARTING_SPEED_RANGE[1])) * difficultyFactor
+        v = v * (random.randint(ASTEROID_STARTING_SPEED_RANGE[0], ASTEROID_STARTING_SPEED_RANGE[1]))
         ast.ApplyVelocity(v)
         entities.append(ast)
 

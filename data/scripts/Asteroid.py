@@ -4,13 +4,19 @@ from BasicEntity import BasicEntity, Group, CalculateAfterSpeedBasedOnMomentum, 
 from Animations import CreateExplosionFromCollision
 from Weapons import Turret
 from ItemFactory import CreatePowerUp
+import Config
 from random import random, randint, shuffle
 from math import pi
 
 class Asteroid (BasicEntity):
+    BASE_RADIUS = 30.0
     @staticmethod
     def GetActualRadius(size_factor):
-        return 30.0 * size_factor
+        return Asteroid.BASE_RADIUS * size_factor
+
+    @staticmethod
+    def GetMaximumFactor():
+        return (Config.MAX_ENTITY_SIZE/2.0) / Asteroid.BASE_RADIUS
 
     @staticmethod
     def GetTurretCooldown(size_factor):
@@ -22,8 +28,10 @@ class Asteroid (BasicEntity):
         return random() < chance
 
     def __init__(self, x, y, size_factor):
-        self.size_factor = size_factor
+        if size_factor > Asteroid.GetMaximumFactor():
+            size_factor = Asteroid.GetMaximumFactor()
         r = Asteroid.GetActualRadius(size_factor)
+        self.size_factor = size_factor
         hp = 120 * size_factor
         BasicEntity.__init__(self, x, y, "images/asteroid%s.png" % (randint(1,3)), r, hp)
         self.group = Group.ASTEROIDS
@@ -50,7 +58,7 @@ class Asteroid (BasicEntity):
             shuffle(angles)
             direction = self.velocity.Normalize()
             pieceNumber = randint(2,3)
-            factor = self.size_factor / 1.5
+            factor = self.size_factor / 1.75
             #print self, "is splitting, into factor", factor
             for i in range(pieceNumber):
                 v = direction.Rotate(angles.pop())
@@ -63,8 +71,11 @@ class Asteroid (BasicEntity):
                 ast.ApplyVelocity(v)
                 AddNewObjectToScene(ast)
             ###
-            #lifepack = CreatePowerUp(self.GetPos().get_x(), self.GetPos().get_y())
-            #AddNewObjectToScene(lifepack)
+            plus = 0.5 * self.size_factor / Asteroid.GetMaximumFactor()
+            chance = Config.baseDropRate + plus
+            if random() <= chance:
+                itempack = CreatePowerUp(self.GetPos().get_x(), self.GetPos().get_y())
+                AddNewObjectToScene(itempack)
             self.Delete()
 
     def GetDamage(self, obj_type):
