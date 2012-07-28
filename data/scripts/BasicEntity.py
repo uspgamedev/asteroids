@@ -57,7 +57,6 @@ class EntityInterface (Entity):
         return self.node.modifier().offset()
 
     def SetPos(self, pos):
-        if self.node == None:   return
         self.node.modifier().set_offset(pos)
         if self.collision_object != None:
             self.collision_object.MoveTo(pos)

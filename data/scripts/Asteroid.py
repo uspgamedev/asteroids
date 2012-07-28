@@ -65,6 +65,7 @@ class Asteroid (BasicEntity):
             ###
             #lifepack = CreatePowerUp(self.GetPos().get_x(), self.GetPos().get_y())
             #AddNewObjectToScene(lifepack)
+            self.Delete()
 
     def GetDamage(self, obj_type):
         if obj_type == self.type:

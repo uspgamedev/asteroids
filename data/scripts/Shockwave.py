@@ -41,6 +41,7 @@ class Shockwave (GravityWell):
         self.lifetime += dt
         r = GetEquivalentValueInRange(self.lifetime, [0, self.max_lifetime], self.radius_range)
         self.SetRadius(r)
+        self.collision_object.MoveTo(self.GetPos()) # to refresh to collision object
         if self.lifetime > self.max_lifetime:
             #gotta destroy this thing
             self.Delete()

@@ -206,7 +206,9 @@ class ShieldEffect(Effect):
         self.shape = TexturedRectangle( texture_obj, self.size )
         self.shape.set_hotspot(Drawable.CENTER)
         self.node.set_drawable(self.shape)
-        self.node.modifier().set_alpha(0.5)
+        color = self.node.modifier().color()
+        color.set_a(0.5)
+        self.node.modifier().set_color(color)
 
         self.geometry = Circle(self.radius)
         self.collision_object.set_shape(self.geometry)
@@ -273,7 +275,9 @@ class MatterAbsorptionEffect(Effect):
         self.shape = TexturedRectangle( texture_obj, self.size )
         self.shape.set_hotspot(Drawable.CENTER)
         self.node.set_drawable(self.shape)
-        self.node.modifier().set_alpha(0.5)
+        color = self.node.modifier().color()
+        color.set_a(0.5)
+        self.node.modifier().set_color(color)
 
         self.geometry = Circle(self.radius)
         self.collision_object.set_shape(self.geometry)
@@ -325,11 +329,14 @@ class FractureEffect(Effect):
 
     def Apply(self, dt):
         scene = Engine_reference().CurrentScene()
-        for obj in scene.objects:
+        # It's possible that since new objects are added directly to the AsteroidsScene, the new asteroids
+        # created on breaking will be place in this list, and then we'll fracture them too... Can't let that happen =P
+        asteroid_list = [o for o in scene.objects if o.CheckType("Asteroid")]
+        for obj in asteroid_list:
             if obj.CheckType("Asteroid"):
                 exploAnim = Animations.CreateExplosionAtLocation(obj.GetPos(), obj.radius)
                 AddNewObjectToScene(exploAnim)
-                obj.Delete()
+                obj.Break()
 
 ##################
 class FractalShotEffect(Effect):

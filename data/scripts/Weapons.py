@@ -1,7 +1,7 @@
 from ugdk.ugdk_math import Vector2D, Vector2DList
 from ugdk.ugdk_base import Engine_reference, Color
 from BasicEntity import EntityInterface, BasicEntity, Group, RangeCheck, AddNewObjectToScene, GetEquivalentValueInRange, getCollisionManager, BasicColLogic
-from Animations import CreateExplosionFromCollision
+from Animations import CreateExplosionFromCollision, CreateExplosionAtLocation
 import Shockwave
 import Gravity
 
@@ -542,8 +542,19 @@ class LaserBeam(EntityInterface,Observer):
     def Tick(self):
         pass
 
+    def createExplosionForTarget(self, target):
+        pos = self.parent.GetPos()
+        dir = self.GetDirection() * ( (target.GetPos() - pos).Length() - target.radius )
+        pos = pos + dir
+        dir = target.GetPos() - pos
+        pos = pos + (dir.Normalize() * self.beam_width/2.0)
+        explosion = CreateExplosionAtLocation(pos, self.beam_width)
+        AddNewObjectToScene(explosion)
+
     def HandleCollision(self, target):
         if hasattr(target, "GetGroup") and target.GetGroup() != self.parent.GetGroup() and target.GetGroup() != Group.NEUTRAL:
             target.TakeDamage(self.damage_per_sec * self.delta_t)
+            self.createExplosionForTarget(target)
         elif target.CheckType("Planet"):
             target.TakeDamage(self.damage_per_sec * self.delta_t / 2.0)
+            self.createExplosionForTarget(target)
