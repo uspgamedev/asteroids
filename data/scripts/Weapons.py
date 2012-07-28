@@ -525,9 +525,10 @@ class LaserBeam(EntityInterface,Observer):
         self.geometry.set_vertices(self.GetVertices())
 
     def Update(self, dt):
-        #if self.parent.is_destroyed:
-        #    self.Delete()
-        #    return
+        if self.parent.is_destroyed:
+            self.parent.node.RemoveChild(self.node)
+            self.Delete()
+            return
 
         self.delta_t = dt
         #self.node.modifier().set_rotation(self.GetDirection().Angle() + pi/2.0)                              ### uncomment these lines to make the entity's node
