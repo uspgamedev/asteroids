@@ -6,7 +6,7 @@ import Shockwave
 import Gravity
 
 from random import random, randint
-from math import pi, ceil
+from math import pi, ceil, acos
 
 class Projectile (BasicEntity):
     base_radius = 5.0
@@ -48,11 +48,14 @@ class Projectile (BasicEntity):
                 self.tracking_target = None
             else:
                 speed = self.velocity.Length()
-                dir = (self.tracking_target.GetPos() - self.GetPos()).Normalize() * speed
+                dir = (self.tracking_target.GetPos() - self.GetPos()).Normalize()# * speed
                 #homing = dir * speed # applying force to actual velocity
                 #attraction = (self.velocity + dir*self.tracking_coefficient*100).Normalize() * speed
                 #self.velocity = (homing * self.tracking_coefficient/10) + (attraction * (1-self.tracking_coefficient/10))
-                self.velocity = (self.velocity * (1-self.tracking_coefficient)) + (dir * self.tracking_coefficient)
+                ###self.velocity = (self.velocity * (1-self.tracking_coefficient)) + (dir * self.tracking_coefficient)
+                angle = dir.Angle() - self.velocity.Angle()
+                print "Hunting Target %s :: angle = %s" % (self.tracking_target, angle)
+                self.velocity = self.velocity.Rotate( angle * dt )
         self.node.modifier().set_rotation( -(self.velocity.Angle()+pi/2.0) )
         self.lifetime -= dt
         if self.lifetime <= 0:

@@ -39,7 +39,7 @@ def Generate(difficultyFactor, heroData):
     # a object can only be placed in the center position of a cell, and only one object per cell,
     # although there can be empty cells.
     #
-    # this way we have a simple way of knowing where we can place object, with the benefit that
+    # this way we have a simple way of knowing where we can place objects, with the benefit that
     # at least in theory, they should not be colliding with each other
     rows = int( screenSize.get_y() / Config.MAX_ENTITY_SIZE )
     columns = int( screenSize.get_x() / Config.MAX_ENTITY_SIZE )

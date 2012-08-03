@@ -122,11 +122,11 @@ class BasicEntity (EntityInterface):
         self.shape.set_hotspot(Drawable.CENTER)
         self.node.set_drawable(self.shape)
 
-        #self.text = Engine_reference().text_manager().GetText( "#"+str(self.id) )
-        #self.text.set_hotspot(Drawable.CENTER)
-        #self.textNode = Node(self.text)
-        #self.textNode.modifier().set_offset( Vector2D(0.0, -self.radius ) )
-        #self.hud_node.AddChild(self.textNode)
+        self.text = Engine_reference().text_manager().GetText( "#"+str(self.id) )
+        self.text.set_hotspot(Drawable.CENTER)
+        self.textNode = Node(self.text)
+        self.textNode.modifier().set_offset( Vector2D(0.0, -self.radius ) )
+        self.hud_node.AddChild(self.textNode)
 
         self.velocity = Vector2D(0.0, 0.0)
         self.max_velocity = 5000.0 #length of the maximum velocity - the entity can't achieve a velocity with length greater than this by whatever means
