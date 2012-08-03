@@ -1,7 +1,7 @@
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_base import Color, Engine_reference, ResourceManager_CreateTextFromLanguageTag
 from ugdk.ugdk_input import InputManager, K_w, K_a, K_s, K_d, M_BUTTON_LEFT, K_ESCAPE, M_BUTTON_RIGHT
-from BasicEntity import BasicEntity, Group, GetEquivalentValueInRange
+from BasicEntity import BasicEntity, Group, RangeCheck, GetEquivalentValueInRange
 from Radio import Radio, SOUND_PATH
 import Weapons
 from BarUI import BarUI, BAR_HEIGHT
@@ -10,13 +10,14 @@ from math import pi
 from random import randint
 
 class ShipData:
-    def __init__(self, max_life, max_energy, pulse_damage, pulse_shots):
+    def __init__(self, max_life, max_energy, pulse_damage, pulse_shots, homing):
         self.max_life = max_life
         self.max_energy = max_energy
         self.pulse_damage = pulse_damage
         self.pulse_shots = pulse_shots
+        self.homing = homing
     def __repr__(self):
-        return "{ShipData: [MaxLife=%s][MaxEnergy=%s][PulseDmg=%s][PulseShots=%s]}" % (self.max_life, self.max_energy, self.pulse_damage, self.pulse_shots)
+        return "{ShipData: [MaxLife=%s][MaxEnergy=%s][PulseDmg=%s][PulseShots=%s][Homing=%s]}" % (self.max_life, self.max_energy, self.pulse_damage, self.pulse_shots, self.homing)
     def __str__(self): return self.__repr__()
         
 
@@ -34,6 +35,9 @@ class Ship (BasicEntity):
         self.max_speed = 200.0              # max |velocity| ship can attain.
         self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), Vector2D(0.0, self.radius+BAR_HEIGHT))
         self.hud_node.AddChild(self.energy_hud.node)
+
+        self.rangeCheck = RangeCheck(0, 0, 1024.0, "Asteroid")
+        self.rangeCheck.AttachToEntity(self)
 
         self.pulse_weapon = Weapons.Pulse()
         self.right_weapon = Weapons.Laser() #Weapons.ShockBomb() #AntiGravShield(35)
@@ -117,6 +121,7 @@ class Ship (BasicEntity):
         accel = accel * self.speed
         self.acceleration = accel
 
+        self.pulse_weapon.SetTarget( self.rangeCheck.GetTarget() )
         weaponFiring = self.pulse_weapon.Toggle(input.MouseDown(M_BUTTON_LEFT), dt)
         if self.right_weapon != None:
             weaponFiring = weaponFiring or self.right_weapon.Toggle(input.MouseDown(M_BUTTON_RIGHT), dt)

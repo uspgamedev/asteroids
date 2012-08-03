@@ -39,9 +39,9 @@ def CreateEnergyMaxBoost():
 ####################
 def CreatePulsePack(x, y):
     powerUps = {
-        "Power Boost": CreatePulseDamagePack,
-        "Multiplicity Boost": CreatePulseMultiplicityPack,
-        "Homing Boost": CreatePulseMultiplicityPack, #<D>#
+        "Power Boost": CreatePulseHomingPack,
+        "Multiplicity Boost": CreatePulseHomingPack,
+        "Homing Boost": CreatePulseHomingPack,
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
@@ -53,6 +53,9 @@ def CreatePulseDamagePack():
 
 def CreatePulseMultiplicityPack():
     return Items.PulseMultiplicityIncreaseEffect(1)
+
+def CreatePulseHomingPack():
+    return Items.PulseHomingEffect(0.1)
 
 ####################
 # Passive
@@ -87,7 +90,7 @@ def CreateMatterAbsorptionPack():
 def CreateActivePack(x, y):
     powerUps = {
         "Anti Grav Shield": CreateAntiGravShieldPack,
-        "Laser": CreateBlackholePack, #<VMT>#
+        "Laser": CreateLaserPack,
         "Shock Bomb": CreateShockBombPack,
         "Blackhole": CreateBlackholePack,
         "Hyperspace": CreateHyperspacePack,
@@ -99,6 +102,9 @@ def CreateActivePack(x, y):
 
 def CreateAntiGravShieldPack():
     return Items.WeaponPickupEffect( Weapons.AntiGravShield(35.0) )
+
+def CreateLaserPack():
+    return Items.WeaponPickupEffect( Weapons.Laser() )
 
 def CreateShockBombPack():
     return Items.WeaponPickupEffect( Weapons.ShockBomb() )

@@ -129,7 +129,7 @@ GRAVITY_CONSTANT = 6.67e-017
 def GetGravForce(plamass, distance):
     force = (GRAVITY_CONSTANT * plamass * GRAVITY_FACTOR) / (distance**2)
     return force/3.6
-	
+
 ######################################################
 # GetMassByRadius
 #radius --> in Km 

@@ -66,7 +66,7 @@ class StatsUI:
         
         self.texts = []
         self.stringsFunctions = [self.GetLivesText, self.GetDifficultyText,
-                                    self.GetPointsText, self.GetShipPosition, self.GetShipHudPosition]
+                                    self.GetPointsText]
         self.strings = [f() for f in self.stringsFunctions]
         for i in range(len(self.strings)):
             self.texts.append( Engine_reference().text_manager().GetText(self.strings[i]) )

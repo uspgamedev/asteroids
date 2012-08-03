@@ -30,7 +30,7 @@ class PowerUp (BasicEntity):
 
         self.text = Engine_reference().text_manager().GetText(name)
         self.textNode = Node(self.text)
-        self.textNode.modifier().set_offset( Vector2D(-self.text.width()/2.0, 0.0 ) )
+        self.textNode.modifier().set_offset( Vector2D(-self.text.width()/2.0, 0.0 ) ) # TODO: text hotspot!
         self.textNode.set_active(False)
         self.node.AddChild(self.textNode)
 
@@ -149,6 +149,15 @@ class PulseMultiplicityIncreaseEffect(Effect):
         self.amount = amount
     def Apply(self, dt):
         self.target.data.pulse_shots += self.amount
+
+##################
+class PulseHomingEffect(Effect):
+    def __init__(self, amount):
+        Effect.__init__(self, 0)
+        self.amount = amount
+    def Apply(self, dt):
+        if self.target.data.homing >= 1.0:  self.target.data.homing = 1.0
+        else: self.target.data.homing += self.amount
 
 #################
 class SatelliteEffect(Effect):

@@ -122,6 +122,12 @@ class BasicEntity (EntityInterface):
         self.shape.set_hotspot(Drawable.CENTER)
         self.node.set_drawable(self.shape)
 
+        #self.text = Engine_reference().text_manager().GetText( "#"+str(self.id) )
+        #self.text.set_hotspot(Drawable.CENTER)
+        #self.textNode = Node(self.text)
+        #self.textNode.modifier().set_offset( Vector2D(0.0, -self.radius ) )
+        #self.hud_node.AddChild(self.textNode)
+
         self.velocity = Vector2D(0.0, 0.0)
         self.max_velocity = 5000.0 #length of the maximum velocity - the entity can't achieve a velocity with length greater than this by whatever means
         self.last_velocity = None
@@ -262,19 +268,24 @@ class RangeCheck(EntityInterface):
                 self.Delete()
             else:
                 self.SetPos(self.parent.GetPos())
-        if self.target != None and self.target.is_destroyed:
-            self.target = None
-            self.dist = -1.0
+        if self.target != None:
+            if self.target.is_destroyed:
+                self.target = None
+                self.dist = -1.0
+            else:
+                self.dist = self.GetDistTo(self.target)
 
     def GetDistTo(self, ent):
         d = self.GetPos() - ent.GetPos()
         return d.Length()
 
-    def HandleCollision(self, target):
-        if target.CheckType(self.target_type):
-            d = self.GetDistTo(target)
-            if self.dist < 0.0 or d < self.dist:
-                self.target = target
+    def HandleCollision(self, coltarget):
+        if coltarget.CheckType(self.target_type):
+            d = self.GetDistTo(coltarget)
+            #if self.target_type == "Asteroid" and d < 150:
+            #    print "[%s :: %s] => [%s :: %s]" % (self.target,self.dist,  coltarget,d)
+            if self.target == None or d < self.dist:
+                self.target = coltarget
                 self.dist = d
 
 #################################################

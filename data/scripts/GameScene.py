@@ -33,8 +33,8 @@ class ManagerScene (Scene):
         self.difficulty = 0.5
         self.points = 0
         self.status = ManagerScene.IDLE
-        self.heroData = Ship.ShipData(100.0, 100.0, 25.0, 1)
-        self.stats = BarUI.StatsUI(self, 100.0, 100.0, Color(0.6,0.6,0.6), 0.4 )
+        self.heroData = Ship.ShipData(100.0, 100.0, 25.0, 1, 0.0)
+        self.stats = BarUI.StatsUI(self, 100.0, 100.0, Color(0.6,0.6,0.6), 0.4)
         self.interface_node().AddChild(self.stats.node)
 
     def Focus(self):
@@ -111,7 +111,7 @@ class AsteroidsScene (Scene):
         self.hero = None
         self.finishTextNode = None
         self.difficultyFactor = difficultyFactor
-        #self.AddTask(self.collisionManager.GenerateHandleCollisionTask() )
+        #self.AddTask(self.collisionManager.GenerateHandleCollisionTask() )###
         self.managerScene = managerScene
         self.stats = BarUI.StatsUI(managerScene, 0.0, 0.0, Color(0.0,0.0,0.0), 0.4 )
         self.hud = Node()
@@ -229,7 +229,7 @@ class AsteroidsScene (Scene):
         self.CheckForEndGame()
         self.stats.Update()
         self.CheckCommands()
-        self.HandleCollisions()
+        self.HandleCollisions()###
         
         #if self.hero != None:
         #    offset = self.hero.GetPos()

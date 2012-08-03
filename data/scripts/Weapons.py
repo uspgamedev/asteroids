@@ -25,7 +25,8 @@ class Projectile (BasicEntity):
         self.shape.set_hotspot( Vector2D(32.0, 32.0) )
         self.shape.set_size( Vector2D(64, 128) )  # original projectile.png size
         self.on_hit_events = []
-        
+        self.tracking_target = None
+        self.tracking_coefficient = 0.0
         self.isFromPlayer = isFromPlayer
         self.hitsFriendlyToParent = True
         self.hitsSameClassAsParent = True
@@ -42,6 +43,16 @@ class Projectile (BasicEntity):
 
     def Update(self, dt):
         self.UpdatePosition(dt)
+        if self.tracking_target != None and self.tracking_coefficient > 0.0:
+            if self.tracking_target.is_destroyed:
+                self.tracking_target = None
+            else:
+                speed = self.velocity.Length()
+                dir = (self.tracking_target.GetPos() - self.GetPos()).Normalize() * speed
+                #homing = dir * speed # applying force to actual velocity
+                #attraction = (self.velocity + dir*self.tracking_coefficient*100).Normalize() * speed
+                #self.velocity = (homing * self.tracking_coefficient/10) + (attraction * (1-self.tracking_coefficient/10))
+                self.velocity = (self.velocity * (1-self.tracking_coefficient)) + (dir * self.tracking_coefficient)
         self.node.modifier().set_rotation( -(self.velocity.Angle()+pi/2.0) )
         self.lifetime -= dt
         if self.lifetime <= 0:
@@ -72,6 +83,10 @@ class Projectile (BasicEntity):
 
     def GetPointsValue(self):
         return self.value
+
+    def SetTrackingTarget(self, trackingTarget, trackingCoefficient):
+        self.tracking_target = trackingTarget
+        self.tracking_coefficient = trackingCoefficient
 
     def AddOnHitEvent(self, function):
         self.on_hit_events.append(function)
@@ -129,7 +144,7 @@ class Turret:
         self.speed = speed
         self.power = power
         self.color = color
-        self.firing_angle_offset = 2.5
+        self.firing_angle_offset = 2.5 #degrees
         self.hitsFriendlyToParent = True
         self.hitsSameClassAsParent = True
         self.rangeCheck = RangeCheck(0, 0, 500.0, target_type)
@@ -191,6 +206,10 @@ class Pulse (Weapon):
         self.charge_time = 0                # used internally for counting, in seconds
         self.power_range = [0.5, 3.0]       # range in which the shot can be
         self.projectile_speed = 170         #
+        self.target = None
+
+    def SetTarget(self, target):
+        self.target = target
 
     def Toggle(self, active, dt):
         if active:
@@ -239,6 +258,7 @@ class Pulse (Weapon):
             #create projectile and set it up
             proj = Projectile(pos.get_x(), pos.get_y(), vel, power, self.parent.data.pulse_damage, True)
             proj.SetParent(self.parent)
+            proj.SetTrackingTarget(self.target, self.parent.data.homing)
             proj.node.modifier().set_color( Color(0.0, 0.5, 1.0, 0.9) )
             proj.hitsFriendlyToParent = False
             AddNewObjectToScene(proj)
@@ -301,7 +321,7 @@ class Laser(Weapon):
                 self.beam = LaserBeam(self.parent, self.parent.GetDirection(), self.laser_width, self.damage_per_sec)
                 AddNewObjectToScene(self.beam)
             self.beam.velocity = self.parent.GetDirection()
-            self.beam.SetBeamLength(self.parent.GetDirection().Length())
+            #self.beam.SetBeamLength(self.parent.GetDirection().Length())
             self.parent.TakeEnergy(energy_cost)
             return True
         elif self.beam != None:
@@ -468,7 +488,7 @@ class LaserBeam(EntityInterface,Observer):
         self.node.set_drawable(self.sprite)
         self.velocity = velocity
         self.beam_width = beam_width
-        self.beam_length = 256.0
+        self.beam_length = Engine_reference().video_manager().video_size().Length()
         self.parent = parent
         self.damage_per_sec = damage_per_sec
         self.delta_t = 0.0
