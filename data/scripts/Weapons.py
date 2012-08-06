@@ -47,15 +47,13 @@ class Projectile (BasicEntity):
             if self.tracking_target.is_destroyed:
                 self.tracking_target = None
             else:
-                speed = self.velocity.Length()
                 dir = (self.tracking_target.GetPos() - self.GetPos()).Normalize()# * speed
-                #homing = dir * speed # applying force to actual velocity
-                #attraction = (self.velocity + dir*self.tracking_coefficient*100).Normalize() * speed
-                #self.velocity = (homing * self.tracking_coefficient/10) + (attraction * (1-self.tracking_coefficient/10))
-                ###self.velocity = (self.velocity * (1-self.tracking_coefficient)) + (dir * self.tracking_coefficient)
                 angle = dir.Angle() - self.velocity.Angle()
-                print "Hunting Target %s :: angle = %s" % (self.tracking_target, angle)
-                self.velocity = self.velocity.Rotate( angle * dt )
+                if angle < -pi: angle += 2*pi
+                elif angle > pi:    angle -= 2*pi
+                rotangle = (0.5+self.tracking_coefficient)*pi/3
+                if angle < 0:   rotangle = -rotangle
+                self.velocity = self.velocity.Rotate( rotangle * dt )
         self.node.modifier().set_rotation( -(self.velocity.Angle()+pi/2.0) )
         self.lifetime -= dt
         if self.lifetime <= 0:

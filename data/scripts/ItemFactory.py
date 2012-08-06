@@ -39,8 +39,8 @@ def CreateEnergyMaxBoost():
 ####################
 def CreatePulsePack(x, y):
     powerUps = {
-        "Power Boost": CreatePulseHomingPack,
-        "Multiplicity Boost": CreatePulseHomingPack,
+        "Power Boost": CreatePulseDamagePack,
+        "Multiplicity Boost": CreatePulseMultiplicityPack,
         "Homing Boost": CreatePulseHomingPack,
     }
     choice = random.choice(powerUps.keys())
