@@ -389,16 +389,12 @@ class BlackholeWeapon(Weapon):
         self.energy_per_sec = energy_per_sec
         self.firing = False
         self.blackhole = None
-        self.hole_pos = None
-        self.node = None
-        self.sprite = None
 
     def Toggle(self, active, dt):
         energy_cost = self.energy_per_sec * dt
         if active and (not self.firing) and self.parent.energy >= 2*self.energy_per_sec:
             self.firing = True
             self.hole_pos = Engine_reference().input_manager().GetMousePosition()
-            #self.CreateSingularityBeam()
             self.parent.TakeEnergy(self.energy_per_sec)
             self.blackhole = Gravity.Blackhole(self.hole_pos.get_x(), self.hole_pos.get_y(), 50.0, 0)
             self.blackhole.AddIDToIgnoreList(self.parent.id)
@@ -409,56 +405,22 @@ class BlackholeWeapon(Weapon):
         elif active and self.firing:
             if self.parent.energy < energy_cost:
                 self.firing = False
-                #self.RemoveBeam()
                 self.blackhole.Delete()
                 self.blackhole = None
                 return False
-            #self.UpdateBeam(dt)
             self.parent.TakeEnergy(energy_cost)
             return True
         elif not active:
             if self.firing:
-                #self.RemoveBeam()
                 self.blackhole.Delete()
                 self.blackhole = None
             self.firing = False
         return False
- 
-    def CreateSingularityBeam(self):
-        self.node = Node()
-        self.sprite = Sprite("laser", "animations/laser.gdd")
-        self.sprite.SelectAnimation("BASIC_LASER")
-        #self.sprite.set_hotspot( Drawable.LEFT )
-        self.node.set_drawable(self.sprite)
-        self.node.modifier().set_color( Color(0.2,0.2,0.2, 0.7) )
-        beam_length = (self.parent.GetPos() - self.hole_pos).Length()
-        scaleX = beam_length / self.sprite.size().get_x()
-        scaleY = 10.0 / self.sprite.size().get_y()
-        self.node.modifier().set_scale( Vector2D(scaleX, scaleY) )
-        #self.node.modifier().set_offset( Vector2D(0.0, -beam_length/2.0) )
-        angle = self.parent.node.modifier().rotation() - (self.parent.GetPos() - self.hole_pos).Angle()
-        self.node.modifier().set_rotation(angle)
-        self.parent.node.AddChild(self.node)
 
-    def UpdateBeam(self, dt):
-        beam_length = (self.parent.GetPos() - self.hole_pos).Length()
-        scaleX = beam_length / self.sprite.size().get_x()
-        scaleY = 10.0 / self.sprite.size().get_y()
-        self.node.modifier().set_scale( Vector2D(scaleX, scaleY) )
-
-        bh_dir = self.hole_pos - self.parent.GetPos()
-        #bh_dir = bh_dir.Normalize() * beam_length/2.0
-        #self.node.modifier().set_offset( bh_dir )
-
-        angle =  (bh_dir).Angle() - self.parent.node.modifier().rotation()
-        if angle <= -pi:    angle += pi
-        elif angle > pi:    angle -= pi
-        self.node.modifier().set_rotation(angle+pi)
-
-    def RemoveBeam(self):
-        del self.node
-        self.node = None
-        self.sprite = None
+    def Dismantle(self):
+        if self.blackhole != None:
+            self.blackhole.Delete()
+            self.blackhole = None
 
 #########
 class Hyperspace(Weapon):
