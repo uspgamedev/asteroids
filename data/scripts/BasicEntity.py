@@ -70,17 +70,23 @@ class EntityInterface (Entity):
     def HandleMapBoundaries(self, pos):
         max = Config.gamesize
 
+        passedBoundary = False
         # checking for horizontal map boundaries
         if pos.get_x() < 0.0:
             pos.set_x( max.get_x() + pos.get_x() )
+            passedBoundary = True
         if pos.get_x() > max.get_x():
             pos.set_x( pos.get_x() - max.get_x() )
+            passedBoundary = True
 
         # checking for vertical map boundaries
         if pos.get_y() < 0.0:
             pos.set_y( max.get_y() + pos.get_y() )
+            passedBoundary = True
         if pos.get_y() > max.get_y():
             pos.set_y( pos.get_y() - max.get_y() )
+            passedBoundary = True
+        return passedBoundary
             
     def Update(self, dt):
         pass
@@ -140,6 +146,8 @@ class BasicEntity (EntityInterface):
         self.hud_node.AddChild(self.life_hud.node)
         self.active_effects = {}
         self.group = Group.UNDETERMINED
+        self.wraps_around_boundary = True
+        self.invulnerable = False
         self.setupCollisionObject()
 
     def setupCollisionObject(self):
@@ -187,7 +195,8 @@ class BasicEntity (EntityInterface):
         pos = pos + (self.velocity * dt)
         self.last_velocity = self.velocity
         self.last_dt = dt
-        self.HandleMapBoundaries(pos)
+        if self.HandleMapBoundaries(pos) and not self.wraps_around_boundary:
+            self.Delete()
         self.SetPos(pos)
         self.hud_node.modifier().set_offset(pos)
 
@@ -202,6 +211,7 @@ class BasicEntity (EntityInterface):
 
     def TakeDamage(self, damage):
         if damage < 0:  return
+        if self.invulnerable:   return
         self.life -= damage
         if damage > 0:
             sound_name = self.hit_sounds[ randint(0, len(self.hit_sounds)-1) ]

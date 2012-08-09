@@ -1,5 +1,6 @@
 from ugdk.ugdk_math import Vector2D, Vector2DList
 from ugdk.ugdk_base import Engine_reference, Color
+from ugdk.ugdk_graphic import Node, Drawable
 from BasicEntity import EntityInterface, BasicEntity, Group, RangeCheck, AddNewObjectToScene, GetEquivalentValueInRange, getCollisionManager, BasicColLogic
 from Animations import CreateExplosionFromCollision, CreateExplosionAtLocation
 import Shockwave
@@ -28,6 +29,7 @@ class Projectile (BasicEntity):
         self.tracking_target = None
         self.tracking_coefficient = 0.0
         self.isFromPlayer = isFromPlayer
+        self.wraps_around_boundary = not isFromPlayer
         self.hitsFriendlyToParent = True
         self.hitsSameClassAsParent = True
         # scale:
@@ -308,8 +310,8 @@ class AntiGravShield(GravityWell, Weapon):
 class Laser(Weapon):
     def __init__(self):
         self.beam = None
-        self.damage_per_sec = 100.0
-        self.energy_per_sec = 10.0
+        self.damage_per_sec = 200.0
+        self.energy_per_sec = 40.0
         self.minimum_energy_required = 25.0 #minimum energy required for activation
         self.laser_width = 16.0
 
@@ -383,50 +385,86 @@ class ShockBomb(Weapon):
 
 #########
 class BlackholeWeapon(Weapon):
-    def __init__(self, blackhole_duration):
-        self.energy_cost = 100.0
-        self.projectile_speed = 170.0
-        self.can_shoot = True
-        self.blackhole_duration = blackhole_duration
+    def __init__(self, energy_per_sec):
+        self.energy_per_sec = energy_per_sec
+        self.firing = False
+        self.blackhole = None
+        self.hole_pos = None
+        self.node = None
+        self.sprite = None
 
     def Toggle(self, active, dt):
-        if active and self.can_shoot:
-            self.can_shoot = False
-            mouse_dir = Engine_reference().input_manager().GetMousePosition() - self.parent.GetPos()
-            mouse_dir = mouse_dir.Normalize()
-            return self.Shoot(mouse_dir)
+        energy_cost = self.energy_per_sec * dt
+        if active and (not self.firing) and self.parent.energy >= 2*self.energy_per_sec:
+            self.firing = True
+            self.hole_pos = Engine_reference().input_manager().GetMousePosition()
+            #self.CreateSingularityBeam()
+            self.parent.TakeEnergy(self.energy_per_sec)
+            self.blackhole = Gravity.Blackhole(self.hole_pos.get_x(), self.hole_pos.get_y(), 50.0, 0)
+            self.blackhole.AddIDToIgnoreList(self.parent.id)
+            beam = VisualBeam(self.parent, self.blackhole, 10, Color(0.1,0.3,0.3, 0.7))
+            AddNewObjectToScene(beam)
+            AddNewObjectToScene(self.blackhole)
+            return True
+        elif active and self.firing:
+            if self.parent.energy < energy_cost:
+                self.firing = False
+                #self.RemoveBeam()
+                self.blackhole.Delete()
+                self.blackhole = None
+                return False
+            #self.UpdateBeam(dt)
+            self.parent.TakeEnergy(energy_cost)
+            return True
         elif not active:
-            self.can_shoot = True
+            if self.firing:
+                #self.RemoveBeam()
+                self.blackhole.Delete()
+                self.blackhole = None
+            self.firing = False
         return False
  
-    def Shoot(self, direction):
-        if self.parent.energy < self.energy_cost:    return False
-        self.parent.TakeEnergy(self.energy_cost)
-        power = 1.0
-        pos = self.parent.GetPos()
-        dir = direction.Normalize() * 1.15 * (self.parent.radius + Projectile.GetActualRadius(power))
-        pos = pos + dir
-        vel = self.parent.velocity + (direction.Normalize() * self.projectile_speed)
-        proj = Projectile(pos.get_x(), pos.get_y(), vel, power, 1.0, True)
-        proj.SetParent(self.parent)
-        proj.AddOnHitEvent(self.BlackholeDetonation)
-        proj.node.modifier().set_color( Color(0.1, 0.1, 0.1, 1.0) )
-        proj.lifetime = 4.0
-        AddNewObjectToScene(proj)
-        self.parent.radio.PlaySound("fire.wav")
-        return True
+    def CreateSingularityBeam(self):
+        self.node = Node()
+        self.sprite = Sprite("laser", "animations/laser.gdd")
+        self.sprite.SelectAnimation("BASIC_LASER")
+        #self.sprite.set_hotspot( Drawable.LEFT )
+        self.node.set_drawable(self.sprite)
+        self.node.modifier().set_color( Color(0.2,0.2,0.2, 0.7) )
+        beam_length = (self.parent.GetPos() - self.hole_pos).Length()
+        scaleX = beam_length / self.sprite.size().get_x()
+        scaleY = 10.0 / self.sprite.size().get_y()
+        self.node.modifier().set_scale( Vector2D(scaleX, scaleY) )
+        #self.node.modifier().set_offset( Vector2D(0.0, -beam_length/2.0) )
+        angle = self.parent.node.modifier().rotation() - (self.parent.GetPos() - self.hole_pos).Angle()
+        self.node.modifier().set_rotation(angle)
+        self.parent.node.AddChild(self.node)
 
-    def BlackholeDetonation(self, projectile, target):
-        pos = projectile.GetPos()
-        bh = Gravity.Blackhole(pos.get_x(), pos.get_y(), 50.0, self.blackhole_duration)
-        bh.AddIDToIgnoreList(self.parent.id)
-        AddNewObjectToScene(bh)
+    def UpdateBeam(self, dt):
+        beam_length = (self.parent.GetPos() - self.hole_pos).Length()
+        scaleX = beam_length / self.sprite.size().get_x()
+        scaleY = 10.0 / self.sprite.size().get_y()
+        self.node.modifier().set_scale( Vector2D(scaleX, scaleY) )
+
+        bh_dir = self.hole_pos - self.parent.GetPos()
+        #bh_dir = bh_dir.Normalize() * beam_length/2.0
+        #self.node.modifier().set_offset( bh_dir )
+
+        angle =  (bh_dir).Angle() - self.parent.node.modifier().rotation()
+        if angle <= -pi:    angle += pi
+        elif angle > pi:    angle -= pi
+        self.node.modifier().set_rotation(angle+pi)
+
+    def RemoveBeam(self):
+        del self.node
+        self.node = None
+        self.sprite = None
 
 #########
 class Hyperspace(Weapon):
     def __init__(self):
         self.energy_cost = 40.0
-        self.cooldown = 5.0
+        self.cooldown = 2.0
         self.time_elapsed = 0.0
         self.enabled = True
 
@@ -480,6 +518,7 @@ from ugdk.ugdk_drawable import Sprite
 from ugdk.ugdk_action import Observer
 from ugdk.pyramidworks_collision import CollisionObject
 from ugdk.pyramidworks_geometry import ConvexPolygon
+
 class LaserBeam(EntityInterface,Observer):
     def __init__(self, parent, velocity, beam_width, damage_per_sec):
         EntityInterface.__init__(self, 0, 0, 1.0)
@@ -580,3 +619,41 @@ class LaserBeam(EntityInterface,Observer):
         elif target.CheckType("Planet"):
             target.TakeDamage(self.damage_per_sec * self.delta_t / 2.0)
             self.createExplosionForTarget(target)
+
+
+class VisualBeam(EntityInterface):
+    def __init__(self, ent1, ent2, beam_width, color):
+        EntityInterface.__init__(self, 0, 0, 1.0)
+        self.sprite = Sprite("laser", "animations/laser.gdd")
+        self.sprite.SelectAnimation("BASIC_LASER")
+        self.node.set_drawable(self.sprite)
+        self.node.modifier().set_color(color)
+        self.beam_width = beam_width
+        self.ents = (ent1, ent2)
+        self.is_collidable = False
+        
+    def SetBeamWidth(self, width):
+        self.beam_width = width
+
+    def UpdateModifier(self):
+        dir = self.ents[1].GetPos() - self.ents[0].GetPos()
+        beam_length = dir.Length()
+
+        self.node.modifier().set_rotation(-dir.Angle())
+
+        scaleX = beam_length / self.sprite.size().get_x()
+        scaleY = self.beam_width / self.sprite.size().get_y()
+        self.node.modifier().set_scale( Vector2D(scaleX, scaleY) )
+
+        dir = dir.Normalize() * beam_length/2.0
+        dir = self.ents[0].GetPos() + dir
+        self.node.modifier().set_offset( dir )
+
+    def Update(self, dt):
+        if self.ents[0].is_destroyed or self.ents[1].is_destroyed:
+            self.Delete()
+            return
+        self.UpdateModifier()
+
+    def HandleCollision(self, target):
+        pass

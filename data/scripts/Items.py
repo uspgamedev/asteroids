@@ -175,8 +175,8 @@ class SatelliteEffect(Effect):
 
     def Apply(self, dt):
         if (self.sat1.is_destroyed and self.sat2.is_destroyed) or self.target.is_destroyed:
-            self.sat1.Delete()
-            self.sat2.Delete()
+            if not self.sat1.is_destroyed: self.sat1.Delete()
+            if not self.sat2.is_destroyed: self.sat2.Delete()
             self.lifetime = 0.0
         else:
             self.lifetime = 10.0
@@ -219,6 +219,7 @@ class ShieldEffect(Effect):
         color.set_a(0.5)
         self.node.modifier().set_color(color)
 
+        self.target.invulnerable = True
         self.geometry = Circle(self.radius)
         self.collision_object.set_shape(self.geometry)
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
@@ -236,6 +237,10 @@ class ShieldEffect(Effect):
             self.life -= coltarget.GetDamage(self.target.type)
             coltarget.TakeDamage(coltarget.life + 10)
             #print "SHIELD COLLISION %s/%s" % (self.life, self.max_life)
+
+    def Delete(self):
+        Effect.Delete(self)
+        if self.target != None: self.target.invulnerable = False
 
 #####################
 class ItemAttractorEffect(Effect):
@@ -288,6 +293,7 @@ class MatterAbsorptionEffect(Effect):
         color.set_a(0.5)
         self.node.modifier().set_color(color)
 
+        self.target.invulnerable = True
         self.geometry = Circle(self.radius)
         self.collision_object.set_shape(self.geometry)
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
@@ -302,6 +308,10 @@ class MatterAbsorptionEffect(Effect):
             elif coltarget.CheckType("Projectile"):
                 self.target.RestoreEnergy(coltarget.GetDamage(self.target.type) * self.energy_absorbed_percent)
             coltarget.TakeDamage(coltarget.life + 10)
+
+    def Delete(self):
+        Effect.Delete(self)
+        if self.target != None: self.target.invulnerable = False
 
 ####################
 class WeaponPickupEffect(Effect):

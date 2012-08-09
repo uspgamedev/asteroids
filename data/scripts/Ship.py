@@ -1,6 +1,7 @@
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_base import Color, Engine_reference, ResourceManager_CreateTextFromLanguageTag
 from ugdk.ugdk_input import InputManager, K_w, K_a, K_s, K_d, M_BUTTON_LEFT, K_ESCAPE, M_BUTTON_RIGHT
+from ugdk.ugdk_graphic import Node
 from BasicEntity import BasicEntity, Group, RangeCheck, GetEquivalentValueInRange
 from Radio import Radio, SOUND_PATH
 import Weapons
@@ -24,6 +25,12 @@ class ShipData:
 class Ship (BasicEntity):
     def __init__(self, x, y, data):
         BasicEntity.__init__(self, x, y, "images/ship.png", 20.0, data.max_life)
+        self.node.set_zindex(1.0)
+        self.graphic_node = Node()
+        self.node.set_drawable(None)
+        self.graphic_node.set_drawable(self.shape)
+        self.graphic_node.set_zindex(1.0)
+        self.node.AddChild(self.graphic_node)
         self.group = Group.SHIP
         self.radio = Radio()
         self.acceleration = Vector2D(0.0, 0.0)

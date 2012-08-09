@@ -21,14 +21,14 @@ def CreateRepairPack(x, y):
     return p
 
 def CreateLifeBoost():
-    return Items.AbsoluteLifeEffect(0, 25.0)
+    return Items.AbsoluteLifeEffect(0, 50.0)
 def CreateLifeRegen():
-    return Items.AbsoluteLifeEffect(10.0, 5.0, True, True)
+    return Items.AbsoluteLifeEffect(10.0, 10.0, True, True)
 def CreateLifeMaxBoost():
     return Items.MaxValueIncreaseEffect(Items.MaxValueIncreaseEffect.LIFE, 25.0)
 
 def CreateEnergyBoost():
-    return Items.AbsoluteEnergyEffect(0, 25.0)
+    return Items.AbsoluteEnergyEffect(0, 50.0)
 def CreateEnergyRegen():
     return Items.AbsoluteEnergyEffect(10.0, 15.0, True)
 def CreateEnergyMaxBoost():
@@ -110,7 +110,7 @@ def CreateShockBombPack():
     return Items.WeaponPickupEffect( Weapons.ShockBomb() )
 
 def CreateBlackholePack():
-    return Items.WeaponPickupEffect( Weapons.BlackholeWeapon(30.0) )
+    return Items.WeaponPickupEffect( Weapons.BlackholeWeapon(20.0) )
 
 def CreateHyperspacePack():
     return Items.WeaponPickupEffect( Weapons.Hyperspace() )

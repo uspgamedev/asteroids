@@ -1,5 +1,5 @@
 from ugdk.ugdk_math import Vector2D
-from ugdk.ugdk_base import Color
+from ugdk.ugdk_base import Color, Engine_reference
 from BasicEntity import BasicEntity, Group, CalculateAfterSpeedBasedOnMomentum, AddNewObjectToScene
 from Animations import CreateExplosionFromCollision
 from Weapons import Turret
@@ -15,7 +15,7 @@ class Asteroid (BasicEntity):
         return Asteroid.BASE_RADIUS * size_factor
 
     @staticmethod
-    def GetMaximumFactor():
+    def GetMaxdimumFactor():
         return (Config.MAX_ENTITY_SIZE/2.0) / Asteroid.BASE_RADIUS
 
     @staticmethod
@@ -24,7 +24,7 @@ class Asteroid (BasicEntity):
 
     @staticmethod
     def CheckChanceForTurret(size_factor):
-        chance = size_factor/2.0  #2.0 here is the (approximate?) maximum Asteroid sizeFactor in difficulty 1
+        chance = size_factor/2.0  #2.0 here is the (approximate?) maximum Asteroid sizeFactor in difficulty 1d
         return random() < chance
 
     def __init__(self, x, y, size_factor):
@@ -32,6 +32,7 @@ class Asteroid (BasicEntity):
             size_factor = Asteroid.GetMaximumFactor()
         r = Asteroid.GetActualRadius(size_factor)
         self.size_factor = size_factor
+        df = Engine_reference().CurrentScene().difficultyFactor
         hp = 120 * size_factor
         BasicEntity.__init__(self, x, y, "images/asteroid%s.png" % (randint(1,3)), r, hp)
         self.group = Group.ASTEROIDS
