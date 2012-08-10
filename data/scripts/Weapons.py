@@ -26,8 +26,11 @@ class Projectile (BasicEntity):
         self.shape.set_hotspot( Vector2D(32.0, 32.0) )
         self.shape.set_size( Vector2D(64, 128) )  # original projectile.png size
         self.on_hit_events = []
-        self.tracking_target = None
+        #self.tracking_target = None
         self.tracking_coefficient = 0.0
+
+        self.rangeCheck = None
+
         self.isFromPlayer = isFromPlayer
         self.hitsFriendlyToParent = True
         self.hitsSameClassAsParent = True
@@ -86,9 +89,17 @@ class Projectile (BasicEntity):
     def GetPointsValue(self):
         return self.value
 
+    @property
+    def tracking_target(self):
+        if self.rangeCheck != None:
+            return self.rangeCheck.GetTarget()
+        return None
+
     def SetTrackingTarget(self, trackingTarget, trackingCoefficient):
-        self.tracking_target = trackingTarget
+        #self.tracking_target = trackingTarget
         self.tracking_coefficient = trackingCoefficient
+        self.rangeCheck = RangeCheck(0, 0, 200.0, "Asteroid")
+        self.rangeCheck.AttachToEntity(self)
 
     def AddOnHitEvent(self, function):
         self.on_hit_events.append(function)
@@ -218,10 +229,15 @@ class Pulse (Weapon):
         self.projectile_speed = 170         #
         self.target = None
 
+    @property
+    def size(self):
+        return self.parent.size
+
     def SetTarget(self, target):
         self.target = target
 
     def Toggle(self, active, dt):
+        
         if active:
             self.charge_time += dt
             if self.charge_time >= self.max_charge_time:

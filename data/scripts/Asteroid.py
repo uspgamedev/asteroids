@@ -20,11 +20,11 @@ class Asteroid (BasicEntity):
 
     @staticmethod
     def GetTurretCooldown(size_factor):
-        return 1.0/size_factor
+        return 
 
     @staticmethod
     def CheckChanceForTurret(size_factor):
-        chance = size_factor/2.0  #2.0 here is the (approximate?) maximum Asteroid sizeFactor in difficulty 1d
+        chance = size_factor/2.0  #2.0 here is the (approximate?) maximum Asteroid sizeFactor in difficulty 1
         return random() < chance
 
     def __init__(self, x, y, size_factor):
@@ -33,7 +33,9 @@ class Asteroid (BasicEntity):
         r = Asteroid.GetActualRadius(size_factor)
         self.size_factor = size_factor
         df = Engine_reference().CurrentScene().difficultyFactor
+        if df > 100:    df = 100.0
         hp = 120 * size_factor
+        if df > 2:  hp *= df*0.6
         BasicEntity.__init__(self, x, y, "images/asteroid%s.png" % (randint(1,3)), r, hp)
         self.group = Group.ASTEROIDS
         angle = random() * 2 * pi
@@ -44,7 +46,10 @@ class Asteroid (BasicEntity):
         self.diedFromPlanet = False
         self.turret = None
         if Asteroid.CheckChanceForTurret(size_factor):
-            self.turret = Turret(self, "Ship", Asteroid.GetTurretCooldown(size_factor), 70, 0.4, Color(1.0, 0.0, 0.3, 1.0))
+            cooldown = 1.0/size_factor  #TODO: colocar no range [0.2, 2.7]
+            speed = 70 + df
+            power = 0.3 + random()*(size_factor/Asteroid.GetMaximumFactor())
+            self.turret = Turret(self, "Ship", cooldown, speed, power, Color(1.0, 0.0, 0.3, 1.0))
         
     def Update(self, dt):
         BasicEntity.Update(self, dt)

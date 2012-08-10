@@ -148,7 +148,8 @@ class PulseMultiplicityIncreaseEffect(Effect):
         Effect.__init__(self, 0)
         self.amount = amount
     def Apply(self, dt):
-        self.target.data.pulse_shots += self.amount
+        if self.target.data.pulse_shots >= 14:  self.target.data.pulse_shots = 14
+        else:   self.target.data.pulse_shots += self.amount
 
 ##################
 class PulseHomingEffect(Effect):

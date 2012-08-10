@@ -40,16 +40,20 @@ class Ship (BasicEntity):
         self.energy_regen_rate = 10.0       # energy per second
         self.speed = 400.0                  # |acceleration| in a given frame
         self.max_speed = 200.0              # max |velocity| ship can attain.
-        self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), Vector2D(0.0, self.radius+BAR_HEIGHT))
-        self.hud_node.AddChild(self.energy_hud.node)
 
-        self.rangeCheck = RangeCheck(0, 0, 1024.0, "Asteroid")
-        self.rangeCheck.AttachToEntity(self)
+        #self.rangeCheck = RangeCheck(0, 0, 1024.0, "Asteroid")
+        #self.rangeCheck.AttachToEntity(self)
 
         self.pulse_weapon = Weapons.Pulse()
         self.right_weapon = Weapons.Laser() #Weapons.ShockBomb() #AntiGravShield(35)
         self.pulse_weapon.Activate(self)
         self.right_weapon.Activate(self)
+
+        self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), Vector2D(0.0, self.radius+BAR_HEIGHT))
+        self.hud_node.AddChild(self.energy_hud.node)
+
+        self.charge_hud = BarUI(self.pulse_weapon, "charge_time", Color(1.0,1.0,0.0,1.0), Vector2D(0.0, -self.radius-2*BAR_HEIGHT))
+        self.hud_node.AddChild(self.charge_hud.node)
 
     def set_max_life(self, value):
         self.data.max_life = value
@@ -90,6 +94,7 @@ class Ship (BasicEntity):
         self.UpdatePosition(dt)
         self.life_hud.Update()
         self.energy_hud.Update()
+        self.charge_hud.Update()
         self.CleanUpActiveEffects()
 
     def CheckCommands(self, dt):
@@ -128,7 +133,7 @@ class Ship (BasicEntity):
         accel = accel * self.speed
         self.acceleration = accel
 
-        self.pulse_weapon.SetTarget( self.rangeCheck.GetTarget() )
+        #self.pulse_weapon.SetTarget( self.rangeCheck.GetTarget() )
         weaponFiring = self.pulse_weapon.Toggle(input.MouseDown(M_BUTTON_LEFT), dt)
         if self.right_weapon != None:
             weaponFiring = weaponFiring or self.right_weapon.Toggle(input.MouseDown(M_BUTTON_RIGHT), dt)

@@ -39,8 +39,11 @@ class BarUI:
             current = self.entity.__dict__[self.attr_name]
             max = self.entity.__dict__["max_"+self.attr_name]
             if current <= 0:    current = 0
-            size = current * self.entity.size.get_x() / max
-            scale = size / self.entity.size.get_x()  # I know this is redundant, by I prefer it in this case to be more verbose
+            #size = current * self.entity.size.get_x() / max
+            #scale = size / self.entity.size.get_x()  # I know this is redundant, by I prefer it in this case to be more verbose
+
+            scale = current / max  #this is same as the commented above, but without the redundancy
+
             self.bar_node.modifier().set_scale( Vector2D(scale, 1.0) )
 
     def __repr__(self):
