@@ -29,7 +29,6 @@ class Projectile (BasicEntity):
         self.tracking_target = None
         self.tracking_coefficient = 0.0
         self.isFromPlayer = isFromPlayer
-        self.wraps_around_boundary = not isFromPlayer
         self.hitsFriendlyToParent = True
         self.hitsSameClassAsParent = True
         # scale:
@@ -194,16 +193,24 @@ class Turret:
 class Weapon:
     def __init__(self):
         self.parent = None
+        self.type = str(self.__class__)
+        if len(self.type.split("'")) > 1:
+            self.type = self.type.split("'")[1]
+        self.type = self.type.split(".")[1]
     def Activate(self, parent):
         self.parent = parent
     def Toggle(self, active, dt):
         return False # return -> boolean indicating if weapon succesfully fired
     def Dismantle(self):
         pass # this function should perform any action necessary to kill/destroy/remove this weapon.
+    def __repr__(self):
+        return "%s" % (self.type)
+    def __str__(self): return self.__repr__()
 
 ########
 class Pulse (Weapon):
     def __init__(self):
+        Weapon.__init__(self)
         self.shot_cost = 5.0                # energy required to shoot the weakest projectile
         self.max_charge_time = 1.0          # max time that you can charge a shot in seconds
         self.charge_time = 0                # used internally for counting, in seconds
@@ -264,6 +271,7 @@ class Pulse (Weapon):
             proj.SetTrackingTarget(self.target, self.parent.data.homing)
             proj.node.modifier().set_color( Color(0.0, 0.5, 1.0, 0.9) )
             proj.hitsFriendlyToParent = False
+            proj.wraps_around_boundary = False
             AddNewObjectToScene(proj)
         #ending with a bang
         self.parent.radio.PlaySound("fire.wav")
@@ -274,6 +282,7 @@ from Gravity import GravityWell
 
 class AntiGravShield(GravityWell, Weapon):
     def __init__(self, energyCostPerSec):
+        Weapon.__init__(self)
         self.energyCostPerSec = energyCostPerSec
         GravityWell.__init__(self, 0, 0, 1)
         self.is_antigrav = True
@@ -309,6 +318,7 @@ class AntiGravShield(GravityWell, Weapon):
 ##########
 class Laser(Weapon):
     def __init__(self):
+        Weapon.__init__(self)
         self.beam = None
         self.damage_per_sec = 200.0
         self.energy_per_sec = 40.0
@@ -340,6 +350,7 @@ class Laser(Weapon):
 ##########
 class ShockBomb(Weapon):
     def __init__(self):
+        Weapon.__init__(self)
         self.energy_cost = 50.0
         self.projectile_speed = 170.0
         self.shock_lifetime = 1.0
@@ -384,8 +395,9 @@ class ShockBomb(Weapon):
         AddNewObjectToScene(wave)
 
 #########
-class BlackholeWeapon(Weapon):
+class Blackhole(Weapon):
     def __init__(self, energy_per_sec):
+        Weapon.__init__(self)
         self.energy_per_sec = energy_per_sec
         self.firing = False
         self.blackhole = None
@@ -425,6 +437,7 @@ class BlackholeWeapon(Weapon):
 #########
 class Hyperspace(Weapon):
     def __init__(self):
+        Weapon.__init__(self)
         self.energy_cost = 40.0
         self.cooldown = 2.0
         self.time_elapsed = 0.0
@@ -488,6 +501,7 @@ class LaserBeam(EntityInterface,Observer):
         self.sprite.SelectAnimation("BASIC_LASER")
         self.sprite.AddObserverToAnimation(self)
         self.node.set_drawable(self.sprite)
+        self.node.set_zindex(-1.0)
         self.velocity = velocity
         self.beam_width = beam_width
         self.beam_length = Engine_reference().video_manager().video_size().Length()
@@ -590,6 +604,7 @@ class VisualBeam(EntityInterface):
         self.sprite.SelectAnimation("BASIC_LASER")
         self.node.set_drawable(self.sprite)
         self.node.modifier().set_color(color)
+        self.node.set_zindex(-1.0)
         self.beam_width = beam_width
         self.ents = (ent1, ent2)
         self.is_collidable = False

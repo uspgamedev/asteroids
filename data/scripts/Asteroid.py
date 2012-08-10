@@ -15,7 +15,7 @@ class Asteroid (BasicEntity):
         return Asteroid.BASE_RADIUS * size_factor
 
     @staticmethod
-    def GetMaxdimumFactor():
+    def GetMaximumFactor():
         return (Config.MAX_ENTITY_SIZE/2.0) / Asteroid.BASE_RADIUS
 
     @staticmethod

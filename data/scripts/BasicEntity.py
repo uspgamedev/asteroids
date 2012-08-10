@@ -95,7 +95,8 @@ class EntityInterface (Entity):
         print self.type, " HandleCollision NOT IMPLEMENTED"
         
     def Delete(self):
-        self.node.set_active(False)
+        if hasattr(self, "node") and self.node != None:
+            self.node.set_active(False)
         if self.is_destroyed:   return
         self.is_destroyed = True        
 

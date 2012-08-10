@@ -34,8 +34,18 @@ class ManagerScene (Scene):
         self.points = 0
         self.status = ManagerScene.IDLE
         self.heroData = Ship.ShipData(100.0, 100.0, 25.0, 1, 0.0)
-        self.stats = BarUI.StatsUI(self, 100.0, 100.0, Color(0.6,0.6,0.6), 0.4)
+        strFuncs = [self.GetLivesText, self.GetDifficultyText, self.GetPointsText]
+        self.stats = BarUI.StatsUI(self, 100.0, 100.0, strFuncs, Color(0.6,0.6,0.6), 0.4)
         self.interface_node().AddChild(self.stats.node)
+
+    def GetLivesText(self):
+        return "Lives: %s" % (self.lives)
+
+    def GetDifficultyText(self):
+        return "Difficulty: %.2f" % (self.difficulty)
+
+    def GetPointsText(self):
+        return "Points: %d" % (self.points)
 
     def Focus(self):
         self.stats.node.set_active(True)
@@ -113,9 +123,22 @@ class AsteroidsScene (Scene):
         self.difficultyFactor = difficultyFactor
         #self.AddTask(self.collisionManager.GenerateHandleCollisionTask() )###
         self.managerScene = managerScene
-        self.stats = BarUI.StatsUI(managerScene, 0.0, 0.0, Color(0.0,0.0,0.0), 0.4 )
+        strFuncs = [self.managerScene.GetLivesText, self.managerScene.GetDifficultyText, self.managerScene.GetPointsText]
+        self.stats = BarUI.StatsUI(managerScene, 0.0, 0.0, strFuncs, Color(0.0,0.0,0.0), 0.4)
+        heroFuncs = [self.HeroPulseStats, self.HeroWeaponStats]
+        self.hero_stats = BarUI.StatsUI(managerScene, Config.resolution.get_x()-150.0, 0.0, heroFuncs, Color(0.0,0.0,0.0), 0.4)
         self.hud = Node()
         self.interface_node().AddChild(self.hud)
+        
+    def HeroPulseStats(self):
+        if self.hero != None and not self.hero.is_destroyed:
+            return " Pulse: %s x %s : %s " % (self.hero.data.pulse_damage, self.hero.data.pulse_shots, self.hero.data.homing)
+        return ""
+
+    def HeroWeaponStats(self):
+        if self.hero != None and not self.hero.is_destroyed:
+            return " Weapon: %s " % (self.hero.right_weapon.type)
+        return ""
         
     def startCollisions(self):
         self.collisionManager.Generate("Entity")
@@ -181,6 +204,7 @@ class AsteroidsScene (Scene):
         self.content_node().set_drawable(MapGenerator.GetBackgroundDrawable() )
         #print "GENERATE MARK 3"
         self.interface_node().AddChild(self.stats.node)
+        self.interface_node().AddChild(self.hero_stats.node)
         
     def GetLivePlanetsPoints(self):
         v = 0
@@ -228,6 +252,7 @@ class AsteroidsScene (Scene):
             
         self.CheckForEndGame()
         self.stats.Update()
+        self.hero_stats.Update()
         self.CheckCommands()
         self.HandleCollisions()###
         

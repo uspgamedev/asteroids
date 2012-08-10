@@ -50,11 +50,12 @@ class BarUI:
 
 
 class StatsUI:
-    def __init__(self, managerScene, x, y, backColor, backAlpha=1.0):
+    def __init__(self, managerScene, x, y, stringFunctions, backColor, backAlpha=1.0):
         self.managerScene = managerScene
         self.node = Node()
         #self.node.thisown = 0
-        self.backShape = SolidRectangle( Vector2D(150.0, 75.0) )
+        self.size = Vector2D(150.0, 75.0)
+        self.backShape = SolidRectangle( self.size )
         self.backShape.set_color( backColor )
         self.backNode = Node()
         self.backNode.set_drawable( self.backShape )
@@ -65,9 +66,9 @@ class StatsUI:
         self.node.modifier().set_offset( Vector2D(x,y) )
         
         self.texts = []
-        self.stringsFunctions = [self.GetLivesText, self.GetDifficultyText,
-                                    self.GetPointsText]
+        self.stringsFunctions = stringFunctions
         self.strings = [f() for f in self.stringsFunctions]
+        y = 0
         for i in range(len(self.strings)):
             self.texts.append( Engine_reference().text_manager().GetText(self.strings[i]) )
             textNode = Node()
@@ -75,34 +76,42 @@ class StatsUI:
             textNode.modifier().set_offset( Vector2D(0.0, i * 20.0 ) )
             #textNode.thisown = 0
             self.node.AddChild(textNode)
+            if self.texts[i].size().get_x() > self.size.get_x():
+                self.size.set_x(self.texts[i].size().get_x())
+            y += self.texts[i].size().get_y() + 5
+        self.size.set_y(y)
+        self.backShape.set_size(self.size)
 
-    def GetLivesText(self):
-        return "Lives: %s" % (self.managerScene.lives)
+    def SetPos(self, x, y):
+        self.node.modifier().set_offset(Vector2D(x,y))
 
-    def GetDifficultyText(self):
-        return "Difficulty: %.2f" % (self.managerScene.difficulty)
-
-    def GetPointsText(self):
-        return "Points: %d" % (self.managerScene.points)
-
-    def GetShipPosition(self):
-        try:
-            pos = Engine_reference().CurrentScene().GetHero().GetPos()
-            return "Ship Position: %.1f; %.1f" % (pos.get_x(), pos.get_y())
-        except:
-            return ""
-    
-    def GetShipHudPosition(self):
-        try:
-            pos = Engine_reference().CurrentScene().GetHero().hud_node.modifier().offset()
-            return "Ship Hud Position: %.1f; %.1f" % (pos.get_x(), pos.get_y())
-        except:
-            return ""
+    def UpdateSize(self, w, h):
+        self.size.set_x(w)
+        self.size.set_y(h)
+        self.backShape.set_size(self.size)
+        screenSize = Engine_reference().video_manager().video_size()
+        x = self.node.modifier().offset().get_x()
+        y = self.node.modifier().offset().get_y()
+        if x + w > screenSize.get_x():
+            x = screenSize.get_x() - w
+        if y + h > screenSize.get_y():
+            y = screenSize.get_y() - h
+        if x < 0:   x = 0
+        if y < 0:   y = 0
+        self.SetPos(x,y)
 
     def Update(self):
+        w = self.size.get_x()
+        h = 0
+        update_size = False
         for i in range(len(self.stringsFunctions)):
             newstr = self.stringsFunctions[i]()
             if newstr != self.strings[i]:
                 self.strings[i] = newstr
                 self.texts[i].SetMessage(newstr)
-            
+                if self.texts[i].size().get_x() > w:
+                    w = self.texts[i].size().get_x()
+                update_size = True
+            h += self.texts[i].size().get_y() + 5
+
+        if update_size: self.UpdateSize(w,h)
