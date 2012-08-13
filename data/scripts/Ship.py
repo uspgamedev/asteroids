@@ -3,7 +3,6 @@ from ugdk.ugdk_base import Color, Engine_reference, ResourceManager_CreateTextFr
 from ugdk.ugdk_input import InputManager, K_w, K_a, K_s, K_d, M_BUTTON_LEFT, K_ESCAPE, M_BUTTON_RIGHT
 from ugdk.ugdk_graphic import Node
 from BasicEntity import BasicEntity, Group, RangeCheck, GetEquivalentValueInRange
-from Radio import Radio, SOUND_PATH
 import Weapons
 from BarUI import BarUI, BAR_HEIGHT
 from Shockwave import Shockwave
@@ -32,7 +31,6 @@ class Ship (BasicEntity):
         self.graphic_node.set_zindex(1.0)
         self.node.AddChild(self.graphic_node)
         self.group = Group.SHIP
-        self.radio = Radio()
         self.acceleration = Vector2D(0.0, 0.0)
         self.data = data
         self.max_energy = self.data.max_energy
@@ -86,7 +84,6 @@ class Ship (BasicEntity):
 
     def Update(self, dt):
         self.CheckCommands(dt)
-        self.radio.CheckCommands()
 
         self.velocity = self.velocity + (self.acceleration * dt)
         if (self.velocity.Length() > self.max_speed):

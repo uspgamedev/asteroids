@@ -3,11 +3,18 @@ from ugdk.ugdk_base import Engine_reference, Color
 from ugdk.ugdk_graphic import Node, Drawable
 from BasicEntity import EntityInterface, BasicEntity, Group, RangeCheck, AddNewObjectToScene, GetEquivalentValueInRange, getCollisionManager, BasicColLogic
 from Animations import CreateExplosionFromCollision, CreateExplosionAtLocation
+from Radio import SOUND_PATH
 import Shockwave
 import Gravity
 
 from random import random, randint
 from math import pi, ceil, acos
+
+
+def PlaySound(sound_name):
+    sound = Engine_reference().audio_manager().LoadSample(SOUND_PATH + sound_name)
+    sound.Play()
+
 
 class Projectile (BasicEntity):
     base_radius = 5.0
@@ -196,8 +203,7 @@ class Turret:
         if self.color != None:
             proj.node.modifier().set_color( self.color )
         AddNewObjectToScene(proj)
-        if hasattr(target, "radio"): #yay pog
-            target.radio.PlaySound("fire.wav")
+        PlaySound("fire.wav")
 
 
 ###################################
@@ -228,6 +234,7 @@ class Pulse (Weapon):
         self.power_range = [0.5, 3.0]       # range in which the shot can be
         self.projectile_speed = 170         #
         self.target = None
+        self.can_shoot = True
 
     @property
     def size(self):
@@ -238,20 +245,39 @@ class Pulse (Weapon):
 
     def Toggle(self, active, dt):
         
-        if active:
+        if active and self.can_shoot:
             self.charge_time += dt
             if self.charge_time >= self.max_charge_time:
                 self.charge_time = self.max_charge_time
-        if not active and self.charge_time > 0:
-            power = GetEquivalentValueInRange(self.charge_time, [0, self.max_charge_time], self.power_range)
-            cost = self.shot_cost * (1 + (power * self.charge_time))
+        elif not active and not self.can_shoot: self.can_shoot = True
+
+        power = self.GetPower()
+        cost = self.GetEnergyCost(power)
+        if (not active and self.charge_time > 0) or self.parent.energy < cost:
             mouse_dir = Engine_reference().input_manager().GetMousePosition() - self.parent.GetPos()
             mouse_dist = mouse_dir.Length()
             mouse_dir = mouse_dir.Normalize()
             self.charge_time = 0.0
+            if self.parent.energy < cost:    cost = self.parent.energy
+            self.can_shoot = False
             return self.Shoot(mouse_dir, mouse_dist, power, cost)
-        return False
+        return active
+
+    def GetPower(self):
+        return GetEquivalentValueInRange(self.charge_time, [0, self.max_charge_time], self.power_range)
+
+    def GetEnergyCost(self, power):
+        if self.charge_time <= 0:   return 0
+        cost = self.shot_cost * (1 + (power * self.charge_time)) #basic shot cost
+        cost = cost + (cost*self.parent.data.homing) # counting homing per shot
+        cost = cost * (self.GetNumShots() + 1)/2.0   # counting multiplicity
+        return cost
         
+    def GetNumShots(self):
+        N = self.parent.data.pulse_shots
+        if N > 14:  N = 14
+        return N
+
     def getSpreadThreshold(self):
         screenSize = Engine_reference().video_manager().video_size()
         l = min(screenSize.get_x(), screenSize.get_y())
@@ -262,8 +288,7 @@ class Pulse (Weapon):
         if self.parent.energy < cost:    return False
         self.parent.TakeEnergy(cost)
         # calculating index for all shots
-        N = self.parent.data.pulse_shots
-        if N > 14:  N = 14
+        N = self.GetNumShots()
         shotIndexList = range(-(N-int(ceil(N/2.0))), int(ceil(N/2.0)))
         indexOffset = 0
         if N % 2 == 0:
@@ -290,7 +315,7 @@ class Pulse (Weapon):
             proj.wraps_around_boundary = False
             AddNewObjectToScene(proj)
         #ending with a bang
-        self.parent.radio.PlaySound("fire.wav")
+        PlaySound("fire.wav")
         return True
 
 #########
@@ -398,7 +423,7 @@ class ShockBomb(Weapon):
         proj.AddOnHitEvent(self.WarheadDetonation)
         proj.node.modifier().set_color( Color(1.0, 1.0, 0.1, 1.0) )
         AddNewObjectToScene(proj)
-        self.parent.radio.PlaySound("fire.wav")
+        PlaySound("fire.wav")
         return True
 
     def WarheadDetonation(self, projectile, target):

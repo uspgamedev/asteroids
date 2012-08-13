@@ -6,6 +6,7 @@ from ugdk.ugdk_base import Engine_reference, ResourceManager_CreateTextFromLangu
 from ugdk.ugdk_drawable import SolidRectangle
 from ugdk.ugdk_graphic import Node
 from ugdk.ugdk_math import Vector2D
+from Radio import Radio, SOUND_PATH
 import Config
 import MapGenerator
 import BarUI
@@ -37,6 +38,7 @@ class ManagerScene (Scene):
         strFuncs = [self.GetLivesText, self.GetDifficultyText, self.GetPointsText]
         self.stats = BarUI.StatsUI(self, 100.0, 100.0, strFuncs, Color(0.6,0.6,0.6), 0.4)
         self.interface_node().AddChild(self.stats.node)
+        self.radio = Radio()
 
     def GetLivesText(self):
         return "Lives: %s" % (self.lives)
@@ -55,6 +57,7 @@ class ManagerScene (Scene):
 
     def Update(self, dt):  ###
         self.CheckCommands()
+        self.radio.CheckCommands()
         self.stats.Update()
         if self.status == ManagerScene.PLAYER_QUIT:
             self.Finish()
@@ -240,7 +243,7 @@ class AsteroidsScene (Scene):
             self.AddTask(SceneFinishTask(5.0))
         
     def Focus(self):
-        pass
+        self.managerScene.radio.Play()
 
     def DeFocus(self):
         pass
@@ -254,6 +257,7 @@ class AsteroidsScene (Scene):
         self.stats.Update()
         self.hero_stats.Update()
         self.CheckCommands()
+        self.managerScene.radio.CheckCommands()
         self.HandleCollisions()###
         
         #if self.hero != None:
