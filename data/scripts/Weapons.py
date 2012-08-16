@@ -253,12 +253,15 @@ class Pulse (Weapon):
 
         power = self.GetPower()
         cost = self.GetEnergyCost(power)
-        if (not active and self.charge_time > 0) or self.parent.energy < cost:
+
+        if active and self.can_shoot and self.parent.energy < cost:
+            self.charge_time -= dt
+
+        if (not active and self.charge_time > 0):
             mouse_dir = Engine_reference().input_manager().GetMousePosition() - self.parent.GetPos()
             mouse_dist = mouse_dir.Length()
             mouse_dir = mouse_dir.Normalize()
             self.charge_time = 0.0
-            if self.parent.energy < cost:    cost = self.parent.energy
             self.can_shoot = False
             return self.Shoot(mouse_dir, mouse_dist, power, cost)
         return active
@@ -266,13 +269,14 @@ class Pulse (Weapon):
     def GetPower(self):
         return GetEquivalentValueInRange(self.charge_time, [0, self.max_charge_time], self.power_range)
 
-    def GetEnergyCost(self, power):
+    def GetEnergyCost(self, power, mult=-1 ):
         if self.charge_time <= 0:   return 0
         cost = self.shot_cost * (1 + (power * self.charge_time)) #basic shot cost
         cost = cost + (cost*self.parent.data.homing) # counting homing per shot
-        cost = cost * (self.GetNumShots() + 1)/2.0   # counting multiplicity
+        if mult == -1:    mult = self.GetNumShots()
+        cost = cost * (mult + 1)/2.0   # counting multiplicity
         return cost
-        
+
     def GetNumShots(self):
         N = self.parent.data.pulse_shots
         if N > 14:  N = 14

@@ -73,7 +73,7 @@ class ManagerScene (Scene):
             Engine_reference().PushScene(cena)
             cena.GenerateMap(self.heroData)
             self.status = ManagerScene.ACTIVE
-            print "=== Starting Asteroids Scene [Difficulty = %s][Lives Left = %s][%s]" % (self.difficulty, self.lives, self.heroData)
+            #print "=== Starting Asteroids Scene [Difficulty = %s][Lives Left = %s][%s]" % (self.difficulty, self.lives, self.heroData)
             
     def UpdateLives(self, amount): self.lives += amount
     def UpdatePoints(self, amount): self.points += amount
@@ -128,7 +128,7 @@ class AsteroidsScene (Scene):
         self.managerScene = managerScene
         strFuncs = [self.managerScene.GetLivesText, self.managerScene.GetDifficultyText, self.managerScene.GetPointsText]
         self.stats = BarUI.StatsUI(managerScene, 0.0, 0.0, strFuncs, Color(0.0,0.0,0.0), 0.4)
-        heroFuncs = [self.HeroPulseStats, self.HeroWeaponStats]
+        heroFuncs = [self.HeroPulseStats, self.HeroWeaponStats, self.HeroLifeStats, self.HeroEnergyStats]
         self.hero_stats = BarUI.StatsUI(managerScene, Config.resolution.get_x()-150.0, 0.0, heroFuncs, Color(0.0,0.0,0.0), 0.4)
         self.hud = Node()
         self.interface_node().AddChild(self.hud)
@@ -142,7 +142,17 @@ class AsteroidsScene (Scene):
         if self.hero != None and not self.hero.is_destroyed:
             return " Weapon: %s " % (self.hero.right_weapon.type)
         return ""
-        
+
+    def HeroLifeStats(self):
+        if self.hero != None and not self.hero.is_destroyed:
+            return " Life: %s/%s " % (self.hero.life, self.hero.max_life)
+        return ""
+
+    def HeroEnergyStats(self):
+        if self.hero != None and not self.hero.is_destroyed:
+            return " Energy: %s/%s " % (self.hero.energy, self.hero.max_energy)
+        return ""
+
     def startCollisions(self):
         self.collisionManager.Generate("Entity")
         self.collisionManager.Generate("Gravity")

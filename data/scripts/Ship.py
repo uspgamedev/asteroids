@@ -137,7 +137,7 @@ class Ship (BasicEntity):
 
         if not weaponFiring:
             if self.energy < self.max_energy:
-                self.energy += self.energy_regen_rate * dt
+                self.RestoreEnergy(self.energy_regen_rate * dt)
 
     def HandleCollision(self, target):
         pass

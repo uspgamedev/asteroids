@@ -23,14 +23,14 @@ def CreateRepairPack(x, y):
 def CreateLifeBoost():
     return Items.AbsoluteLifeEffect(0, 50.0)
 def CreateLifeRegen():
-    return Items.AbsoluteLifeEffect(10.0, 10.0, True, True)
+    return Items.AbsoluteLifeEffect(60.0, 10.0, True, True)
 def CreateLifeMaxBoost():
     return Items.MaxValueIncreaseEffect(Items.MaxValueIncreaseEffect.LIFE, 25.0)
 
 def CreateEnergyBoost():
     return Items.AbsoluteEnergyEffect(0, 50.0)
 def CreateEnergyRegen():
-    return Items.AbsoluteEnergyEffect(10.0, 15.0, True)
+    return Items.AbsoluteEnergyEffect(60.0, 10.0, True)
 def CreateEnergyMaxBoost():
     return Items.MaxValueIncreaseEffect(Items.MaxValueIncreaseEffect.ENERGY, 25.0)
 
