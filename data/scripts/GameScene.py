@@ -128,7 +128,7 @@ class AsteroidsScene (Scene):
         self.managerScene = managerScene
         strFuncs = [self.managerScene.GetLivesText, self.managerScene.GetDifficultyText, self.managerScene.GetPointsText]
         self.stats = BarUI.StatsUI(managerScene, 0.0, 0.0, strFuncs, Color(0.0,0.0,0.0), 0.4)
-        heroFuncs = [self.HeroPulseStats, self.HeroWeaponStats, self.HeroLifeStats, self.HeroEnergyStats]
+        heroFuncs = [self.HeroPulseStats, self.HeroWeaponStats, self.HeroLifeStats, self.HeroEnergyStats, self.HeroActiveEffects]
         self.hero_stats = BarUI.StatsUI(managerScene, Config.resolution.get_x()-150.0, 0.0, heroFuncs, Color(0.0,0.0,0.0), 0.4)
         self.hud = Node()
         self.interface_node().AddChild(self.hud)
@@ -145,12 +145,21 @@ class AsteroidsScene (Scene):
 
     def HeroLifeStats(self):
         if self.hero != None and not self.hero.is_destroyed:
-            return " Life: %s/%s " % (self.hero.life, self.hero.max_life)
+            return " Life: %2.2f/%s " % (self.hero.life, self.hero.max_life)
         return ""
 
     def HeroEnergyStats(self):
         if self.hero != None and not self.hero.is_destroyed:
-            return " Energy: %s/%s " % (self.hero.energy, self.hero.max_energy)
+            return " Energy: %2.2f/%s " % (self.hero.energy, self.hero.max_energy)
+        return ""
+
+    def HeroActiveEffects(self):
+        if self.hero != None and not self.hero.is_destroyed:
+            aedl = self.hero.GetActiveEffectsDetailsList()
+            aedlStr = ""
+            for s in aedl:
+                aedlStr += " "+s+" \n"
+            return ""#aedlStr
         return ""
 
     def startCollisions(self):

@@ -58,6 +58,7 @@ class EntityInterface (Entity):
 
     def SetPos(self, pos):
         self.node.modifier().set_offset(pos)
+        self.hud_node.modifier().set_offset(pos)
         if self.collision_object != None:
             self.collision_object.MoveTo(pos)
 
@@ -143,7 +144,7 @@ class BasicEntity (EntityInterface):
         self.life = life
         self.max_life = life
         self.hit_sounds = ["hit1.wav", "hit2.wav", "hit3.wav", "hit4.wav"]
-        self.life_hud = BarUI(self, "life", Color(1.0,0.0,0.0,1.0), Vector2D(0.0, self.radius))
+        self.life_hud = BarUI(self, "life", Color(1.0,0.0,0.0,1.0), self.radius)
         self.hud_node.AddChild(self.life_hud.node)
         self.active_effects = {}
         self.group = Group.UNDETERMINED
@@ -170,6 +171,17 @@ class BasicEntity (EntityInterface):
             self.active_effects[effect.type].append(effect)
         else:
             self.active_effects[effect.type] = [effect]
+
+    def GetActiveEffectsDetailsList(self):
+        aedl = []
+        for effectType, effects in self.active_effects.items():
+            countStr = ""
+            count = len(effects)
+            if count <= 0:  continue
+            if count > 1:
+                countStr = "%sx " % count
+            aedl.append( countStr+effects[0].GetDetailString() )
+        return aedl
         
     def CleanUpActiveEffects(self):
         for effectType, effects in self.active_effects.items():
@@ -199,7 +211,6 @@ class BasicEntity (EntityInterface):
         if self.HandleMapBoundaries(pos) and not self.wraps_around_boundary:
             self.Delete()
         self.SetPos(pos)
-        self.hud_node.modifier().set_offset(pos)
 
     def GetDirection(self):
         if self.velocity.Length() == 0.0:

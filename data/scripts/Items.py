@@ -1,10 +1,11 @@
 from ugdk.ugdk_math import Vector2D
-from ugdk.ugdk_base import Engine_reference
+from ugdk.ugdk_base import Engine_reference, Color
 from ugdk.ugdk_drawable import TexturedRectangle
 from ugdk.ugdk_graphic import Drawable, Node
 from ugdk.pyramidworks_collision import CollisionObject, CollisionLogic
 from ugdk.pyramidworks_geometry import Circle
 from BasicEntity import BasicEntity, EntityInterface, Group, BasicColLogic, getCollisionManager, AddNewObjectToScene
+from BarUI import BarUI, BAR_SIZE
 import Config
 import Shockwave
 import Animations
@@ -74,6 +75,7 @@ class Effect (EntityInterface):
         self.is_collidable = False
         self.target = None
         self.lifetime = lifetime
+        self.max_lifetime = lifetime
         self.unique_in_target = False #if True, there can be only 1 effect of this type in a entity simultaneously
 
     def Update(self, dt):
@@ -88,6 +90,9 @@ class Effect (EntityInterface):
 
     def Apply(self, dt):
         pass
+
+    def GetDetailString(self):  
+        return ""
 
 #############
 class AbsoluteLifeEffect (Effect):
@@ -105,6 +110,12 @@ class AbsoluteLifeEffect (Effect):
             self.target.TakeDamage(value)
         else:
             self.target.Heal(value)
+
+    def GetDetailString(self):  
+        if self.regen:
+            return "Life Regen %2.1f/sec" % (self.amount)
+        return ""
+
 ################
 class AbsoluteEnergyEffect (Effect):
     def __init__(self, lifetime, amount, isRegen=False):
@@ -117,6 +128,12 @@ class AbsoluteEnergyEffect (Effect):
         if self.regen:
             value *= dt
         self.target.RestoreEnergy(value)
+
+    def GetDetailString(self):  
+        if self.regen:
+            return "Energy Regen %2.1f/sec" % (self.amount)
+        return ""
+
 #################
 class MaxValueIncreaseEffect (Effect):
     ENERGY = "energy"
@@ -206,6 +223,7 @@ class ShieldEffect(Effect):
         self.geometry = Circle(1.0)
         self.geometry.thisown = 0
         self.collision_object.set_shape( self.geometry )
+        self.life_hud = None
 
     def OnSceneAdd(self, scene):
         self.radius = self.target.radius * 1.2
@@ -224,20 +242,28 @@ class ShieldEffect(Effect):
         self.geometry = Circle(self.radius)
         self.collision_object.set_shape(self.geometry)
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
+
+        self.life_hud = BarUI(self, "life", Color(0.85,0.85,0.85,1.0), self.radius, True)
+        self.hud_node.AddChild(self.life_hud.node)
         
 
     def Apply(self, dt):
         self.SetPos( self.target.GetPos() )
         if self.life > 0 and not self.target.is_destroyed:
             self.lifetime = 10.0
+            if self.life_hud != None:   self.life_hud.Update()
         else:
             self.lifetime = 0.0
+
 
     def HandleCollision(self, coltarget):
         if coltarget.CheckType("Asteroid") or (coltarget.CheckType("Projectile") and coltarget.GetParentID() != self.target.id):
             self.life -= coltarget.GetDamage(self.target.type)
             coltarget.TakeDamage(coltarget.life + 10)
             #print "SHIELD COLLISION %s/%s" % (self.life, self.max_life)
+
+    def GetDetailString(self):  
+        return "Shields On"
 
     def Delete(self):
         Effect.Delete(self)
@@ -266,6 +292,9 @@ class ItemAttractorEffect(Effect):
             v = v.Normalize()
             v = v * self.force
             coltarget.ApplyVelocity(v)
+
+    def GetDetailString(self):  
+        return "Attracting Items"
 
 ####################
 class MatterAbsorptionEffect(Effect):
@@ -309,6 +338,9 @@ class MatterAbsorptionEffect(Effect):
             elif coltarget.CheckType("Projectile"):
                 self.target.RestoreEnergy(coltarget.GetDamage(self.target.type) * self.energy_absorbed_percent)
             coltarget.TakeDamage(coltarget.life + 10)
+
+    def GetDetailString(self):  
+        return "Absorbing Matter"
 
     def Delete(self):
         Effect.Delete(self)

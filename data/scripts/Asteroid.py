@@ -46,7 +46,7 @@ class Asteroid (BasicEntity):
         self.diedFromPlanet = False
         self.turret = None
         if Asteroid.CheckChanceForTurret(size_factor):
-            cooldown = 2.7 - (size_factor/Asteroid.GetMaximumFactor()) - df/100 - random()*0.5 #TODO: colocar no range [0.2, 2.7]
+            cooldown = 2.7 - (size_factor/Asteroid.GetMaximumFactor()) - df/100 - random()*0.5
             speed = 70 + df
             power = 0.3 + random()*(size_factor/Asteroid.GetMaximumFactor())
             self.turret = Turret(self, "Ship", cooldown, speed, power, Color(1.0, 0.0, 0.3, 1.0))
@@ -78,7 +78,7 @@ class Asteroid (BasicEntity):
                 AddNewObjectToScene(ast)
             ###
             df = Engine_reference().CurrentScene().difficultyFactor
-            plus = 0.5 * (self.size_factor / Asteroid.GetMaximumFactor()  -  df/100)
+            plus = 0.5 * (self.size_factor / Asteroid.GetMaximumFactor()  -  df/200)
             chance = Config.baseDropRate + plus
             if random() <= chance:
                 itempack = CreatePowerUp(self.GetPos().get_x(), self.GetPos().get_y())

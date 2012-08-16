@@ -263,6 +263,7 @@ class Pulse (Weapon):
             mouse_dir = mouse_dir.Normalize()
             self.charge_time = 0.0
             self.can_shoot = False
+            print "Custo =", cost
             return self.Shoot(mouse_dir, mouse_dist, power, cost)
         return active
 
@@ -274,7 +275,7 @@ class Pulse (Weapon):
         cost = self.shot_cost * (1 + (power * self.charge_time)) #basic shot cost
         cost = cost + (cost*self.parent.data.homing) # counting homing per shot
         if mult == -1:    mult = self.GetNumShots()
-        cost = cost * (mult + 1)/2.0   # counting multiplicity
+        cost = cost *  (1+mult/14.0) #(mult + 1)/2.0   # counting multiplicity
         return cost
 
     def GetNumShots(self):
@@ -370,13 +371,16 @@ class Laser(Weapon):
         self.minimum_energy_required = 25.0 #minimum energy required for activation
         self.laser_width = 16.0
 
+    def GetDamage(self):
+        return self.damage_per_sec + self.parent.data.GetBonusDamage()
+
     def Toggle(self, active, dt):
         energy_cost = self.energy_per_sec * dt
         if active and self.parent.energy >= energy_cost:
             if not self.beam:
                 if self.parent.energy < self.minimum_energy_required:
                     return False
-                self.beam = LaserBeam(self.parent, self.parent.GetDirection(), self.laser_width, self.damage_per_sec)
+                self.beam = LaserBeam(self.parent, self.parent.GetDirection(), self.laser_width, self.GetDamage() )
                 AddNewObjectToScene(self.beam)
             self.beam.velocity = self.parent.GetDirection()
             #self.beam.SetBeamLength(self.parent.GetDirection().Length())
@@ -403,6 +407,12 @@ class ShockBomb(Weapon):
         self.can_shoot = True
         self.shock_damage = 80.0    # done once when shockwave hits a target
         self.wave_damage = 0.5      # done continously while shockwave pushes a target
+
+    def GetShockDamage(self):
+        return self.shock_damage + self.parent.data.GetBonusDamage()
+
+    def GetWaveDamage(self):
+        return self.wave_damage + self.parent.data.GetBonusDamage()/self.shock_damage
 
     def Toggle(self, active, dt):
         if active and self.can_shoot:
@@ -433,8 +443,9 @@ class ShockBomb(Weapon):
     def WarheadDetonation(self, projectile, target):
         pos = projectile.GetPos()
         wave = Shockwave.Shockwave(pos.get_x(), pos.get_y(), self.shock_lifetime, self.shock_radius_range)
-        wave.shock_damage = self.shock_damage
-        wave.wave_damage = self.wave_damage
+        wave.shock_damage = self.GetShockDamage()
+        wave.wave_damage = self.GetWaveDamage()
+        print wave.shock_damage, wave.wave_damage
         wave.shock_force_factor = 0.05
         wave.AddIDToIgnoreList(self.parent.id)
         AddNewObjectToScene(wave)
@@ -483,8 +494,8 @@ class Blackhole(Weapon):
 class Hyperspace(Weapon):
     def __init__(self):
         Weapon.__init__(self)
-        self.energy_cost = 40.0
-        self.cooldown = 2.0
+        self.energy_cost = 35.0
+        self.cooldown = 1.5
         self.time_elapsed = 0.0
         self.enabled = True
 

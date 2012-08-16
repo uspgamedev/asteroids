@@ -3,30 +3,39 @@ from ugdk.ugdk_drawable import SolidRectangle
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_base import Color, Engine_reference
 
-BAR_HEIGHT = 4.0
+from math import pi
+
+BAR_SIZE = 4.0
 
 class BarUI:
-    def __init__(self, entity, attr_name, color, offset):
+    def __init__(self, entity, attr_name, color, offset, vertical = False):
         self.entity = entity
         self.attr_name = attr_name
         if not hasattr(entity, attr_name):
             print "WARNING! BarUI can't find attribute %s in entity %s" % (attr_name, entity)
         if not hasattr(entity, "max_"+attr_name):
             print "WARNING! BarUI can't find attribute %s in entity %s" % ("max_"+attr_name, entity)
-        self.offset = offset
-        self.offset.set_y( offset.get_y() + BAR_HEIGHT)
+
+        if vertical:
+            self.offset = Vector2D(offset + BAR_SIZE, 0.0)
+        else:
+            self.offset = Vector2D(0.0, offset + BAR_SIZE)
 
         self.node = Node()
         self.node.modifier().set_offset( self.offset )
+        if vertical:
+            self.node.modifier().set_rotation( pi/2.0)
         self.node.thisown = 0
 
-        self.back_shape = SolidRectangle( Vector2D(entity.size.get_x(), BAR_HEIGHT) )
+        self.size = Vector2D(entity.size.get_x(), BAR_SIZE)
+
+        self.back_shape = SolidRectangle( self.size )
         self.back_shape.set_color( Color(0.0, 0.0, 0.0, 0.5) )
         self.back_shape.set_hotspot(Drawable.CENTER)
         self.back_node = Node( self.back_shape )
         self.node.AddChild(self.back_node)
 
-        self.shape = SolidRectangle( Vector2D(entity.size.get_x(), BAR_HEIGHT) )
+        self.shape = SolidRectangle( self.size )
         self.shape.set_color( color )
         self.shape.set_hotspot(Drawable.CENTER)
         self.bar_node = Node( self.shape )

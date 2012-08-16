@@ -4,7 +4,7 @@ from ugdk.ugdk_input import InputManager, K_w, K_a, K_s, K_d, M_BUTTON_LEFT, K_E
 from ugdk.ugdk_graphic import Node
 from BasicEntity import BasicEntity, Group, RangeCheck, GetEquivalentValueInRange
 import Weapons
-from BarUI import BarUI, BAR_HEIGHT
+from BarUI import BarUI, BAR_SIZE
 from Shockwave import Shockwave
 from math import pi
 from random import randint
@@ -14,8 +14,13 @@ class ShipData:
         self.max_life = max_life
         self.max_energy = max_energy
         self.pulse_damage = pulse_damage
+        self.original_pulse_damage = pulse_damage
         self.pulse_shots = pulse_shots
         self.homing = homing
+
+    def GetBonusDamage(self):
+        return self.pulse_damage - self.original_pulse_damage
+
     def __repr__(self):
         return "{ShipData: [MaxLife=%s][MaxEnergy=%s][PulseDmg=%s][PulseShots=%s][Homing=%s]}" % (self.max_life, self.max_energy, self.pulse_damage, self.pulse_shots, self.homing)
     def __str__(self): return self.__repr__()
@@ -47,10 +52,10 @@ class Ship (BasicEntity):
         self.pulse_weapon.Activate(self)
         self.right_weapon.Activate(self)
 
-        self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), Vector2D(0.0, self.radius+BAR_HEIGHT))
+        self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), self.radius+BAR_SIZE)
         self.hud_node.AddChild(self.energy_hud.node)
 
-        self.charge_hud = BarUI(self.pulse_weapon, "charge_time", Color(1.0,1.0,0.0,1.0), Vector2D(0.0, -self.radius-2*BAR_HEIGHT))
+        self.charge_hud = BarUI(self.pulse_weapon, "charge_time", Color(1.0,1.0,0.0,1.0), -self.radius-2*BAR_SIZE)
         self.hud_node.AddChild(self.charge_hud.node)
 
     def set_max_life(self, value):
