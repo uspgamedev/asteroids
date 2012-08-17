@@ -1,6 +1,6 @@
 from ugdk.ugdk_math import Vector2D
 from ugdk.ugdk_base import Color, Engine_reference
-from BasicEntity import BasicEntity, Group, CalculateAfterSpeedBasedOnMomentum, AddNewObjectToScene
+from BasicEntity import BasicEntity, Group, CalculateAfterSpeedBasedOnMomentum, SeparateVectorComponents, AddNewObjectToScene
 from Animations import CreateExplosionFromCollision
 from Weapons import Turret
 from ItemFactory import CreatePowerUp
@@ -102,23 +102,44 @@ class Asteroid (BasicEntity):
             target.collidedWithAsteroids.append(self.id)
             CreateExplosionFromCollision(self, target, self.radius*0.7)
 
+
+            #print "selfVelocity(%s, %s) :: targetVelocity(%s, %s)" % (self.velocity.get_x(), self.velocity.get_y(), target.velocity.get_x(), target.velocity.get_y())
+
+            collision_line = (self.GetPos() - target.GetPos()).Normalize()
+            selfV = SeparateVectorComponents(self.velocity, collision_line)
+            targetV = SeparateVectorComponents(target.velocity, collision_line)
+            after_speeds = CalculateAfterSpeedBasedOnMomentum(selfV[0].Length(), self.mass, targetV[0].Length(), target.mass, random())
+
+            plusToTarget = selfV[0] - selfV[0].Normalize()*after_speeds[0]
+            plusToSelf = targetV[0] - targetV[0].Normalize()*after_speeds[1]
+
+            #print "PlusToTarget(%s, %s) :: PlusToSelf(%s, %s)" % (plusToTarget.get_x(), plusToTarget.get_y(), plusToSelf.get_x(), plusToSelf.get_y())
+
+            self.velocity = targetV[0].Normalize()*after_speeds[0] + selfV[1] #+ plusToSelf
+            target.velocity = selfV[0].Normalize()*after_speeds[1] + targetV[1] # + plusToTarget
+            #print "AFTER selfVelocity(%s, %s) :: targetVelocity(%s, %s)" % (self.velocity.get_x(), self.velocity.get_y(), target.velocity.get_x(), target.velocity.get_y())
+            #print "-----------------"
+
             self.ApplyCollisionRollback()
             target.ApplyCollisionRollback()
-            aux = self.velocity
-            after_speeds = CalculateAfterSpeedBasedOnMomentum(self, target)
-            self.velocity = target.velocity.Normalize()
-            target.velocity = aux.Normalize()
-            sf = 1.0
-            tf = 1.0
-            if after_speeds[0] > 80.0:
-                st= 0.7
-            if after_speeds[1] > 80.0:
-                tf = 0.7 
-            self.velocity = self.velocity * (after_speeds[0]*sf)
-            target.velocity = target.velocity * (after_speeds[1]*tf)
 
-            #self.velocity = target.velocity
-            #target.velocity = aux
+            ################################
+            #aux = self.velocity
+            #after_speeds = CalculateAfterSpeedBasedOnMomentum(self, target)
+            #self.velocity = target.velocity.Normalize()
+            #target.velocity = aux.Normalize()
+            #sf = 1.0
+            #tf = 1.0
+            #if after_speeds[0] > 80.0:
+            #    st= 0.7
+            #if after_speeds[1] > 80.0:
+            #    tf = 0.7 
+            #self.velocity = self.velocity * (after_speeds[0]*sf)
+            #target.velocity = target.velocity * (after_speeds[1]*tf)
+            #
+            ##self.velocity = target.velocity
+            ##target.velocity = aux
+            ################################
 
             self.TakeDamage(target.GetDamage(self.type))
             target.TakeDamage(self.GetDamage(target.type))

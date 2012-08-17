@@ -340,13 +340,23 @@ def GetEquivalentValueInRange(origin_value, origin_range, destination_range):
 # 1 = e = (Vb' - Va')/(Va-Vb)
 ###
 # following momentum formulas, returns a pair of the speeds (velocity magnetude) of each entity (in order) after a collision
-def CalculateAfterSpeedBasedOnMomentum(ent1, ent2, e=0.2):
-    m1 = ent1.mass
-    m2 = ent2.mass
-    v1 = ent1.velocity.Length()
-    v2 = ent2.velocity.Length()
+def CalculateAfterSpeedBasedOnMomentum(v1, m1, v2, m2, e=0.2):
     #nv1 = ((2*m2*v2) + (v1 * (m1 - m2))) / (m1 + m2)
     #nv2 = ((2*m1*v1) + (v2 * (m2 - m1))) / (m2 + m1)
-    nv1 = ( (m1*v1) + (m2*v2) - m2*e*(v1-v2) ) / (m1 + m2)
-    nv2 = e*(v1 - v2) + nv1
+    nv1 = ( m2*e*(v2-v1) + (m1*v1) + (m2*v2) ) / (m1 + m2)
+    nv2 = ( m1*e*(v1-v2) + (m1*v1) + (m2*v2) ) / (m1 + m2)
     return (nv1, nv2)
+
+#####
+# SeparateVectorComponents
+###
+# separates the given vector v into its components A and B
+# where A is the component in the line represented by dir
+# and B is the component in the line perpendicular to dir
+# return (A, B)
+def SeparateVectorComponents(v, dir):
+    dirPerpendicular = Vector2D( -dir.get_y(), dir.get_x() )
+    v1 = dir * (dir * v)
+    v2 = dirPerpendicular * (dirPerpendicular * v)
+    return (v1, v2)
+

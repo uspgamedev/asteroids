@@ -65,7 +65,8 @@ class ManagerScene (Scene):
         replay = self.status != ManagerScene.ACTIVE
         if replay and self.lives > 0:
             if self.status == ManagerScene.PLAYER_WON:
-                self.difficulty *= 1.15
+                if self.difficulty == 0.5:  self.difficulty = 1.0
+                else:   self.difficulty += 1
                 print "Game WON!"
             elif self.status == ManagerScene.PLAYER_DIED:
                 print "You are no match for teh might of teh Asteroid Army!"
