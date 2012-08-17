@@ -263,7 +263,7 @@ class Pulse (Weapon):
             mouse_dir = mouse_dir.Normalize()
             self.charge_time = 0.0
             self.can_shoot = False
-            print "Custo =", cost
+            #print "Custo =", cost
             return self.Shoot(mouse_dir, mouse_dist, power, cost)
         return active
 

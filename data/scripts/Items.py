@@ -243,6 +243,8 @@ class ShieldEffect(Effect):
         self.collision_object.set_shape(self.geometry)
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
 
+        self.max_life += self.target.data.GetBonusLife()
+        self.life += self.target.data.GetBonusLife()
         self.life_hud = BarUI(self, "life", Color(0.85,0.85,0.85,1.0), self.radius, True)
         self.hud_node.AddChild(self.life_hud.node)
         
@@ -257,7 +259,7 @@ class ShieldEffect(Effect):
 
 
     def HandleCollision(self, coltarget):
-        if coltarget.CheckType("Asteroid") or (coltarget.CheckType("Projectile") and coltarget.GetParentID() != self.target.id):
+        if coltarget.CheckType("Asteroid") or (coltarget.CheckType("Projectile") and coltarget.GetGroup() != self.target.GetGroup() ):
             self.life -= coltarget.GetDamage(self.target.type)
             coltarget.TakeDamage(coltarget.life + 10)
             #print "SHIELD COLLISION %s/%s" % (self.life, self.max_life)
@@ -309,6 +311,7 @@ class MatterAbsorptionEffect(Effect):
         self.geometry = Circle(1.0)
         self.geometry.thisown = 0
         self.collision_object.set_shape( self.geometry )
+        self.life_hud = None
 
     def OnSceneAdd(self, scene):
         self.radius = self.target.radius * 1.1
@@ -327,9 +330,13 @@ class MatterAbsorptionEffect(Effect):
         self.geometry = Circle(self.radius)
         self.collision_object.set_shape(self.geometry)
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
+
+        self.life_hud = BarUI(self, "lifetime", Color(0.85,0.0,0.85,1.0), -(self.radius+BAR_SIZE), True)
+        self.hud_node.AddChild(self.life_hud.node)
         
     def Apply(self, dt):
         self.SetPos( self.target.GetPos() )
+        if self.life_hud != None:   self.life_hud.Update()
 
     def HandleCollision(self, coltarget):
         if hasattr(coltarget, "GetGroup") and coltarget.GetGroup() != self.target.GetGroup() and coltarget.GetGroup() != Group.NEUTRAL:

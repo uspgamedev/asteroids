@@ -12,6 +12,7 @@ from random import randint
 class ShipData:
     def __init__(self, max_life, max_energy, pulse_damage, pulse_shots, homing):
         self.max_life = max_life
+        self.original_max_life = max_life
         self.max_energy = max_energy
         self.pulse_damage = pulse_damage
         self.original_pulse_damage = pulse_damage
@@ -20,6 +21,9 @@ class ShipData:
 
     def GetBonusDamage(self):
         return self.pulse_damage - self.original_pulse_damage
+
+    def GetBonusLife(self):
+        return self.max_life - self.original_max_life
 
     def __repr__(self):
         return "{ShipData: [MaxLife=%s][MaxEnergy=%s][PulseDmg=%s][PulseShots=%s][Homing=%s]}" % (self.max_life, self.max_energy, self.pulse_damage, self.pulse_shots, self.homing)
