@@ -1,7 +1,7 @@
 from ugdk.ugdk_action import Scene, Task
 from ugdk.ugdk_util import CreateBox2D
 from ugdk.pyramidworks_collision import CollisionManager, CollisionInstanceList
-from ugdk.ugdk_input import InputManager, K_ESCAPE, K_HOME, K_PAGEUP, K_PAGEDOWN, K_p, K_SPACE, K_1, K_2, K_3, K_4, K_5
+from ugdk.ugdk_input import InputManager, K_ESCAPE, K_HOME, K_END, K_PAGEUP, K_PAGEDOWN, K_p, K_SPACE, K_1, K_2, K_3, K_4, K_5
 from ugdk.ugdk_base import Engine_reference, ResourceManager_CreateTextFromLanguageTag, Color
 from ugdk.ugdk_drawable import SolidRectangle
 from ugdk.ugdk_graphic import Node
@@ -65,7 +65,8 @@ class ManagerScene (Scene):
         replay = self.status != ManagerScene.ACTIVE
         if replay and self.lives > 0:
             if self.status == ManagerScene.PLAYER_WON:
-                if self.difficulty == 0.5:  self.difficulty = 1.0
+                if self.difficulty < 1.0:   self.difficulty += 0.2
+                if self.difficulty < 3.0:   self.difficulty += 0.5
                 else:   self.difficulty += 1
                 print "Game WON!"
             elif self.status == ManagerScene.PLAYER_DIED:
@@ -251,7 +252,7 @@ class AsteroidsScene (Scene):
         if self.asteroid_count <= 0:
             self.SetAndShowSceneEndText("GameWon")
             self.managerScene.SetGameResult(True)
-            self.managerScene.UpdatePoints( self.GetLivePlanetsPoints() )
+            self.managerScene.UpdatePoints( self.GetLivePlanetsPoints() * self.managerScene.difficulty )
             phl = 100
             if self.hero != None:
                 phl = self.hero.life * 5
@@ -296,11 +297,13 @@ class AsteroidsScene (Scene):
             Engine_reference().PushScene( PauseScene() )
         ### cheats
         elif input.KeyPressed(K_PAGEUP):
-            self.managerScene.difficulty *= 1.15
+            self.managerScene.difficulty += 1
         elif input.KeyPressed(K_PAGEDOWN):
-            self.managerScene.difficulty *= 0.85
+            self.managerScene.difficulty -= 1
         elif input.KeyPressed(K_HOME):
             self.managerScene.lives += 1
+        elif input.KeyPressed(K_END):
+            self.hero.invulnerable = True
         elif input.KeyPressed(K_1):
             cheat = ItemFactory.CreateRepairPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
             self.AddObject(cheat)

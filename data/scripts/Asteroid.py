@@ -33,12 +33,14 @@ class Asteroid (BasicEntity):
         r = Asteroid.GetActualRadius(size_factor)
         self.size_factor = size_factor
         df = Engine_reference().CurrentScene().difficultyFactor
-        if df > 100:    df = 100.0
         hp = 120 * size_factor
-        if df > 2:  hp += df*12
+        if df > 2:  hp += hp*(df/100.0)
         BasicEntity.__init__(self, x, y, "images/asteroid%s.png" % (randint(1,3)), r, hp)
         self.group = Group.ASTEROIDS
         angle = random() * 2 * pi
+        self.rotation_speed = 0
+        if random() > 0.2: 
+            self.rotation_speed = random()*pi - pi/2
         self.node.modifier().set_rotation( angle )
         self.has_splitted = False
         self.mass = 1000.0 + 100000000*size_factor
@@ -53,6 +55,10 @@ class Asteroid (BasicEntity):
         
     def Update(self, dt):
         BasicEntity.Update(self, dt)
+        angle = self.node.modifier().rotation()
+        angle += self.rotation_speed * dt
+        if angle > 2*pi:    angle -= 2*pi
+        self.node.modifier().set_rotation(angle)
         if self.turret != None:
             self.turret.Update(dt)
         self.collidedWithAsteroids = []

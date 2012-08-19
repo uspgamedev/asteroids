@@ -193,6 +193,7 @@ class Turret:
         dir = dir * 1.1 * (self.parent.radius + Projectile.GetActualRadius(self.power))
         pos = pos + dir
         vel = target.velocity + (dir.Normalize() * (self.speed + self.parent.velocity.Length()))
+        vel = vel.Normalize() * (self.speed + (self.parent.velocity*dir)*self.parent.velocity.Length())
         angle = self.GetShootingAngle() #angle is in degrees
         angle = angle * pi / 180.0
         vel = vel.Rotate( angle ) #we need angle in radians
