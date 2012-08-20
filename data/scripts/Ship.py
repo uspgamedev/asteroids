@@ -52,9 +52,9 @@ class Ship (BasicEntity):
         #self.rangeCheck.AttachToEntity(self)
 
         self.pulse_weapon = Weapons.Pulse()
-        self.right_weapon = Weapons.Laser() #Weapons.ShockBomb() #AntiGravShield(35)
+        self.right_weapon = None#Weapons.Laser() #Weapons.ShockBomb() #AntiGravShield(35)
         self.pulse_weapon.Activate(self)
-        self.right_weapon.Activate(self)
+        #self.right_weapon.Activate(self)
 
         self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), self.radius+BAR_SIZE)
         self.hud_node.AddChild(self.energy_hud.node)
@@ -162,7 +162,7 @@ class Satellite(BasicEntity):
         BasicEntity.__init__(self, x, y, "images/satellite.png", parent.radius/2.0, life)
         self.orbit_angle = starting_angle
         self.angle_speed = pi/2.5  # angle speed in radians per second
-        self.turret = Weapons.Turret(self, "Asteroid", 0.6, 150.0, 0.6, Color(0.0, 1.0, 0.1, 0.7))
+        self.turret = Weapons.Turret(self, "Asteroid", 0.6, 170.0, 0.6, Color(0.0, 1.0, 0.1, 0.7))
         self.turret.hitsFriendlyToParent = False
         self.turret.hitsSameClassAsParent = False
 

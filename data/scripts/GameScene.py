@@ -39,6 +39,7 @@ class ManagerScene (Scene):
         self.stats = BarUI.StatsUI(self, 100.0, 100.0, strFuncs, Color(0.6,0.6,0.6), 0.4)
         self.interface_node().AddChild(self.stats.node)
         self.radio = Radio()
+        self.hero_effects = []
 
     def GetLivesText(self):
         return "Lives: %s" % (self.lives)
@@ -65,27 +66,37 @@ class ManagerScene (Scene):
         replay = self.status != ManagerScene.ACTIVE
         if replay and self.lives > 0:
             if self.status == ManagerScene.PLAYER_WON:
-                if self.difficulty < 1.0:   self.difficulty += 0.2
-                if self.difficulty < 3.0:   self.difficulty += 0.5
+                if self.difficulty < 1.0:   self.difficulty += 0.25
+                elif self.difficulty < 3.0:   self.difficulty += 0.5
                 else:   self.difficulty += 1
                 print "Game WON!"
             elif self.status == ManagerScene.PLAYER_DIED:
                 print "You are no match for teh might of teh Asteroid Army!"
+            
             cena = AsteroidsScene(self, self.difficulty)
             Engine_reference().PushScene(cena)
             cena.GenerateMap(self.heroData)
+            for e_func, e_attrDict in self.hero_effects:
+                e = e_func()
+                e.SetTarget(cena.hero)
+                print "IMPLEMENT ATTR DICT IN EVENT RECREATION IN MANAGERSCENE"
+                e.creation_func = e_func
+                cena.hero.ApplyEffect(e)
+            self.hero_effects = []
             self.status = ManagerScene.ACTIVE
             #print "=== Starting Asteroids Scene [Difficulty = %s][Lives Left = %s][%s]" % (self.difficulty, self.lives, self.heroData)
             
     def UpdateLives(self, amount): self.lives += amount
     def UpdatePoints(self, amount): self.points += amount
 
-    def SetGameResult(self, won):
+    def SetGameResult(self, won, hero_effects):
         if won:
             self.status = ManagerScene.PLAYER_WON
         else:
             self.status = ManagerScene.PLAYER_DIED
             self.UpdateLives(-1)
+        self.hero_effects = hero_effects
+
     def SetGameQuit(self):
         self.status = ManagerScene.PLAYER_QUIT
 
@@ -124,6 +135,7 @@ class AsteroidsScene (Scene):
         self.asteroid_count = 0
         self.ship_alive = True
         self.hero = None
+        self.hero_effects = []
         self.finishTextNode = None
         self.difficultyFactor = difficultyFactor
         #self.AddTask(self.collisionManager.GenerateHandleCollisionTask() )###
@@ -142,7 +154,10 @@ class AsteroidsScene (Scene):
 
     def HeroWeaponStats(self):
         if self.hero != None and not self.hero.is_destroyed:
-            return " Weapon: %s " % (self.hero.right_weapon.type)
+            if self.hero.right_weapon != None:
+                return " Weapon: %s " % (self.hero.right_weapon.type)
+            else:
+                return " Weapon: None "
         return ""
 
     def HeroLifeStats(self):
@@ -204,6 +219,8 @@ class AsteroidsScene (Scene):
         if obj.CheckType("Ship"):
             self.ship_alive = False
             self.managerScene.heroData = self.hero.data
+            if self.hero.right_weapon != None:
+                self.hero_effects = [self.hero.right_weapon.GetCreationFunc()]
             self.hero = None
         self.managerScene.UpdatePoints( obj.GetPointsValue() )
         self.objects.remove(obj)
@@ -229,6 +246,22 @@ class AsteroidsScene (Scene):
         #print "GENERATE MARK 3"
         self.interface_node().AddChild(self.stats.node)
         self.interface_node().AddChild(self.hero_stats.node)
+
+    def ReGenerateMap(self, df, heroData):
+        self.difficultyFactor = df
+        # remove old objects
+        to_delete = [obj for obj in self.objects if not obj.CheckType("Ship")]
+        for obj in to_delete:
+            self.RemoveObject(obj)
+
+        self.finishTextNode.thisown = 1
+        del self.finishTextNode
+        self.finishTextNode = None
+        # populate the map
+        data = None
+        if self.hero == None:   data = heroData
+        self.Populate( MapGenerator.Generate(self.difficultyFactor, data) )
+        self.content_node().set_drawable(MapGenerator.GetBackgroundDrawable() )
         
     def GetLivePlanetsPoints(self):
         v = 0
@@ -250,8 +283,11 @@ class AsteroidsScene (Scene):
     def CheckForEndGame(self):
         if self.finishTextNode != None: return
         if self.asteroid_count <= 0:
+            if self.hero.right_weapon != None:
+                self.hero_effects = [self.hero.right_weapon.GetCreationFunc()]
+            self.hero_effects = self.hero_effects + [e.GetCreationFunc() for e in self.hero.GetActiveEffectsList()]
             self.SetAndShowSceneEndText("GameWon")
-            self.managerScene.SetGameResult(True)
+            self.managerScene.SetGameResult(True, self.hero_effects)
             self.managerScene.UpdatePoints( self.GetLivePlanetsPoints() * self.managerScene.difficulty )
             phl = 100
             if self.hero != None:
@@ -260,7 +296,7 @@ class AsteroidsScene (Scene):
             self.AddTask(SceneFinishTask(5.0))
         elif not self.ship_alive:
             self.SetAndShowSceneEndText("GameOver")
-            self.managerScene.SetGameResult(False)
+            self.managerScene.SetGameResult(False, self.hero_effects)
             self.AddTask(SceneFinishTask(5.0))
         
     def Focus(self):

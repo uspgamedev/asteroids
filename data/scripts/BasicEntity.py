@@ -182,6 +182,12 @@ class BasicEntity (EntityInterface):
                 countStr = "%sx " % count
             aedl.append( countStr+effects[0].GetDetailString() )
         return aedl
+
+    def GetActiveEffectsList(self):
+        el = []
+        for effectType, effects in self.active_effects.items():
+            el = el + effects
+        return el
         
     def CleanUpActiveEffects(self):
         for effectType, effects in self.active_effects.items():

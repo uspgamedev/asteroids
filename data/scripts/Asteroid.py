@@ -49,7 +49,7 @@ class Asteroid (BasicEntity):
         self.turret = None
         if Asteroid.CheckChanceForTurret(size_factor):
             cooldown = 2.7 - (size_factor/Asteroid.GetMaximumFactor()) - df/100 - random()*0.5
-            speed = 70 + df
+            speed = 80 + df
             power = 0.3 + random()*(size_factor/Asteroid.GetMaximumFactor())
             self.turret = Turret(self, "Ship", cooldown, speed, power, Color(1.0, 0.0, 0.3, 1.0))
         
@@ -125,6 +125,11 @@ class Asteroid (BasicEntity):
             target.velocity = selfV[0].Normalize()*after_speeds[1] + targetV[1] # + plusToTarget
             #print "AFTER selfVelocity(%s, %s) :: targetVelocity(%s, %s)" % (self.velocity.get_x(), self.velocity.get_y(), target.velocity.get_x(), target.velocity.get_y())
             #print "-----------------"
+
+            rotToTarget = self.rotation_speed * random()
+            rotToSelf = target.rotation_speed * random()
+            self.rotation_speed += rotToSelf - rotToTarget
+            target.rotation_speed += rotToTarget - rotToSelf
 
             self.ApplyCollisionRollback()
             target.ApplyCollisionRollback()

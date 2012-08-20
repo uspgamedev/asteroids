@@ -64,9 +64,10 @@ def Generate(difficultyFactor, heroData):
         return GetCellCenter(i, j)
     ##
 
-    loc = pickAPlace()
-    ship = Ship(loc[0], loc[1], heroData)
-    entities.append(ship)
+    if heroData != None:
+        loc = pickAPlace()
+        ship = Ship(loc[0], loc[1], heroData)
+        entities.append(ship)
 
     planetCount = int( random.randint(PLANET_COUNT_RANGE[0], PLANET_COUNT_RANGE[1])   )
     for i in range(planetCount):

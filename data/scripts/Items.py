@@ -17,7 +17,7 @@ from math import pi
 
 #########################################
 class PowerUp (BasicEntity):
-    def __init__(self, x, y, texture_name, lifetime, effect, name):
+    def __init__(self, x, y, texture_name, lifetime, effect, name, effectCreationFunc):
         r = 15.0
         BasicEntity.__init__(self, x, y, texture_name, r, 1)
         self.life_hud.node.set_active(False)
@@ -26,6 +26,7 @@ class PowerUp (BasicEntity):
         self.lifespan = lifetime
         self.lifetime = lifetime
         self.effect = effect
+        self.effect.creation_func = effectCreationFunc
         self.wasApplied = False
         self.blink_time = 0.0
 
@@ -77,6 +78,13 @@ class Effect (EntityInterface):
         self.lifetime = lifetime
         self.max_lifetime = lifetime
         self.unique_in_target = False #if True, there can be only 1 effect of this type in a entity simultaneously
+        self.creation_func = None
+
+    def GetCreationFunc(self):
+        return (self.creation_func, self.GetAttrDict())
+
+    def GetAttrDict(self):
+        return {"lifetime": self.lifetime, "max_lifetime":self.max_lifetime}
 
     def Update(self, dt):
         if not self.is_destroyed and self.target != None and not self.target.is_destroyed:
@@ -359,6 +367,7 @@ class WeaponPickupEffect(Effect):
         Effect.__init__(self, 0)
         self.weapon = weapon
     def Apply(self, dt):
+        self.weapon.creation_func = self.creation_func
         self.target.SetRightWeapon(self.weapon)
 
 ####################

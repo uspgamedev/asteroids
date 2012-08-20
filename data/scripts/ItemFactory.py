@@ -17,7 +17,7 @@ def CreateRepairPack(x, y):
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
-    p = Items.PowerUp(x, y, "images/repairPowerUp.png", 30.0, e, choice)
+    p = Items.PowerUp(x, y, "images/repairPowerUp.png", 30.0, e, choice, powerUps[choice])
     return p
 
 def CreateLifeBoost():
@@ -45,7 +45,7 @@ def CreatePulsePack(x, y):
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
-    p = Items.PowerUp(x, y, "images/pulsePowerUp.png", 20.0, e, choice)
+    p = Items.PowerUp(x, y, "images/pulsePowerUp.png", 20.0, e, choice, powerUps[choice])
     return p
 
 def CreatePulseDamagePack():
@@ -69,7 +69,7 @@ def CreatePassivePack(x, y):
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
-    p = Items.PowerUp(x, y, "images/passivePowerUp.png", 20.0, e, choice)
+    p = Items.PowerUp(x, y, "images/passivePowerUp.png", 20.0, e, choice, powerUps[choice])
     return p
 
 def CreateSatellitePack():
@@ -97,7 +97,7 @@ def CreateActivePack(x, y):
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
-    p = Items.PowerUp(x, y, "images/activePowerUp.png", 20.0, e, choice)
+    p = Items.PowerUp(x, y, "images/activePowerUp.png", 20.0, e, choice, powerUps[choice])
     return p
 
 def CreateAntiGravShieldPack():
@@ -128,7 +128,7 @@ def CreateInstantPack(x, y):
     }
     choice = random.choice(powerUps.keys())
     e = powerUps[choice]()
-    p = Items.PowerUp(x, y, "images/instantPowerUp.png", 15.0, e, choice)
+    p = Items.PowerUp(x, y, "images/instantPowerUp.png", 15.0, e, choice, powerUps[choice])
     return p
 
 def CreateExplosionPack():

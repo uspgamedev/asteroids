@@ -190,10 +190,14 @@ class Turret:
         pos = self.parent.GetPos()
         dir = target.GetPos() - pos
         dir = dir.Normalize()
-        dir = dir * 1.1 * (self.parent.radius + Projectile.GetActualRadius(self.power))
-        pos = pos + dir
-        vel = target.velocity + (dir.Normalize() * (self.speed + self.parent.velocity.Length()))
-        vel = vel.Normalize() * (self.speed + (self.parent.velocity*dir)*self.parent.velocity.Length())
+        pos = pos + (dir * 1.1 * (self.parent.radius + Projectile.GetActualRadius(self.power)) )
+
+        target_future_pos = target.GetPos() + target.velocity
+        dir = (target_future_pos - pos).Normalize()
+
+        parent_speed_factor = self.parent.velocity.Normalize()*dir.Normalize()
+        if parent_speed_factor < -0.2:  parent_speed_factor = -0.2
+        vel = dir * (self.speed + parent_speed_factor*self.parent.velocity.Length())
         angle = self.GetShootingAngle() #angle is in degrees
         angle = angle * pi / 180.0
         vel = vel.Rotate( angle ) #we need angle in radians
@@ -212,6 +216,7 @@ class Weapon:
     def __init__(self):
         self.parent = None
         self.type = str(self.__class__)
+        self.creation_func = None
         if len(self.type.split("'")) > 1:
             self.type = self.type.split("'")[1]
         self.type = self.type.split(".")[1]
@@ -221,6 +226,8 @@ class Weapon:
         return False # return -> boolean indicating if weapon succesfully fired
     def Dismantle(self):
         pass # this function should perform any action necessary to kill/destroy/remove this weapon.
+    def GetCreationFunc(self):
+        return (self.creation_func, {})
     def __repr__(self):
         return "%s" % (self.type)
     def __str__(self): return self.__repr__()
@@ -233,7 +240,7 @@ class Pulse (Weapon):
         self.max_charge_time = 1.0          # max time that you can charge a shot in seconds
         self.charge_time = 0                # used internally for counting, in seconds
         self.power_range = [0.5, 3.0]       # range in which the shot can be
-        self.projectile_speed = 170         #
+        self.projectile_speed = 250         #
         self.target = None
         self.can_shoot = True
 
@@ -312,6 +319,9 @@ class Pulse (Weapon):
             if target_distance < spreadThreshold:
                 velDir = velDir.Rotate( (i+indexOffset) * (pi/7) * ( (spreadThreshold-target_distance)/spreadThreshold ) )
             vel = self.parent.velocity + (velDir * self.projectile_speed)
+            parent_speed_factor = velDir*self.parent.velocity.Normalize()
+            if parent_speed_factor < -0.2:  parent_speed_factor = -0.2
+            vel = velDir.Normalize() * (self.projectile_speed + parent_speed_factor*self.parent.velocity.Length())
             #create projectile and set it up
             proj = Projectile(pos.get_x(), pos.get_y(), vel, power, self.parent.data.pulse_damage, True)
             proj.SetParent(self.parent)
@@ -446,7 +456,6 @@ class ShockBomb(Weapon):
         wave = Shockwave.Shockwave(pos.get_x(), pos.get_y(), self.shock_lifetime, self.shock_radius_range)
         wave.shock_damage = self.GetShockDamage()
         wave.wave_damage = self.GetWaveDamage()
-        print wave.shock_damage, wave.wave_damage
         wave.shock_force_factor = 0.05
         wave.AddIDToIgnoreList(self.parent.id)
         AddNewObjectToScene(wave)
