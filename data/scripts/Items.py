@@ -233,6 +233,12 @@ class ShieldEffect(Effect):
         self.collision_object.set_shape( self.geometry )
         self.life_hud = None
 
+    def GetAttrDict(self):
+        d = Effect.GetAttrDict(self)
+        d["life"] = self.life
+        d["max_life"] = self.max_life
+        return d
+
     def OnSceneAdd(self, scene):
         self.radius = self.target.radius * 1.2
         self.size = Vector2D(self.radius*2, self.radius*2)

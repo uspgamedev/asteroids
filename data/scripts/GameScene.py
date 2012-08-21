@@ -79,8 +79,9 @@ class ManagerScene (Scene):
             for e_func, e_attrDict in self.hero_effects:
                 e = e_func()
                 e.SetTarget(cena.hero)
-                print "IMPLEMENT ATTR DICT IN EVENT RECREATION IN MANAGERSCENE"
                 e.creation_func = e_func
+                for key, value in e_attrDict.items():
+                    e.__dict__[key] = value
                 cena.hero.ApplyEffect(e)
             self.hero_effects = []
             self.status = ManagerScene.ACTIVE
