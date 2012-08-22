@@ -180,8 +180,9 @@ class Satellite(BasicEntity):
         self.orbit_angle += self. angle_speed * dt
         if self.orbit_angle > 2*pi:
             self.orbit_angle -= 2*pi
-        self.velocity = self.velocity * 0.0
+        self.velocity = self.parent.velocity
         self.turret.Update(dt)
+        self.velocity *= 0.0
         BasicEntity.Update(self, dt)
         
     def HandleCollision(self, target):

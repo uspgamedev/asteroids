@@ -68,7 +68,8 @@ class ManagerScene (Scene):
             if self.status == ManagerScene.PLAYER_WON:
                 if self.difficulty < 1.0:   self.difficulty += 0.25
                 elif self.difficulty < 3.0:   self.difficulty += 0.5
-                else:   self.difficulty += 1
+                elif self.difficulty < 15.0:    self.difficulty += 1.0
+                else:   self.difficulty += 5.0
                 print "Game WON!"
             elif self.status == ManagerScene.PLAYER_DIED:
                 print "You are no match for teh might of teh Asteroid Army!"
