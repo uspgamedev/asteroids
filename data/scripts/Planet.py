@@ -1,4 +1,5 @@
 from ugdk.ugdk_math import Vector2D
+from ugdk.ugdk_base import Engine_reference
 from BasicEntity import BasicEntity, AddNewObjectToScene
 from Asteroid import Asteroid
 from Gravity import GravityWell
@@ -13,8 +14,10 @@ from math import pi
 class Planet (BasicEntity):
     def __init__(self, x, y, size_factor):
         self.size_factor = size_factor
+        df = Engine_reference().CurrentScene().difficultyFactor
         r = 75.0 * size_factor
         hp = 600 * size_factor
+        hp += hp*(df/100.0)
         BasicEntity.__init__(self, x, y, "images/planet%s.png" % (randint(1,5)), r, hp)
         self.has_splitted = False
         self.well = GravityWell(x, y, r)
@@ -73,7 +76,10 @@ class Planet (BasicEntity):
             target.ApplyCollisionRollback()
         elif target.CheckType("Ship"):
             CreateExplosionFromCollision(self, target, target.radius*2)
+            is_invul = target.invulnerable
+            target.invulnerable = False
             target.TakeDamage(self.GetDamage(target.type))
+            target.invulnerable = is_invul
             #print target.type, "crash landed on Planet... No survivors.     Boo-hoo."
         # Projectiles and Asteroids take care of collising with Planets.
 

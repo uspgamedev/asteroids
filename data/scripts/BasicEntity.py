@@ -180,7 +180,8 @@ class BasicEntity (EntityInterface):
             if count <= 0:  continue
             if count > 1:
                 countStr = "%sx " % count
-            aedl.append( countStr+effects[0].GetDetailString() )
+            if effects[0].GetDetailString() != "":
+                aedl.append( countStr+effects[0].GetDetailString() )
         return aedl
 
     def GetActiveEffectsList(self):

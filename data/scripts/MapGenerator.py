@@ -19,14 +19,26 @@ def GetCellCenter(i, j):
     x = j * Config.MAX_ENTITY_SIZE + (Config.MAX_ENTITY_SIZE/2.0)
     y = i * Config.MAX_ENTITY_SIZE + (Config.MAX_ENTITY_SIZE/2.0)
     return (x, y)
+
+def RandInRange(start, end):
+    return random.random()*(end-start) + start
     
-def GetRandomAsteroidSizeFactor():
+def GetRandomAsteroidSizeFactor(difficultyFactor):
     # returns random float in [0.5, 1.2[
-    return random.random() * 0.7 + 0.5
+    if difficultyFactor < 1.0:
+        return RandInRange(0.4, 1.0)
+    elif difficultyFactor < 5.0:
+        return RandInRange(0.8, 1.6)
+    elif difficultyFactor < 15.0:
+        return RandInRange(1.5, 3.0)
+    elif difficultyFactor < 50.0:
+        return RandInRange(2.0, 4.0)
+    else:
+        return RandInRange(4.0, 10.0)
     
 def GetRandomPlanetSizeFactor():
-    # returns random float in [0.7, 1.3[
-    return random.random() * 0.6  + 0.7
+    # returns random float in [0.7, 1.5[
+    return RandInRange(0.7, 1.5)
 
 def Generate(difficultyFactor, heroData):
     screenSize = Config.gamesize
@@ -77,7 +89,7 @@ def Generate(difficultyFactor, heroData):
 
     for i in range(n):
         loc = pickAPlace()
-        ast = Asteroid(loc[0], loc[1], GetRandomAsteroidSizeFactor()*difficultyFactor)
+        ast = Asteroid(loc[0], loc[1], GetRandomAsteroidSizeFactor(difficultyFactor))
         v = Vector2D(1,0).Rotate( random.random() * 2 * pi )
         v = v.Normalize()
         v = v * (random.randint(ASTEROID_STARTING_SPEED_RANGE[0], ASTEROID_STARTING_SPEED_RANGE[1]))

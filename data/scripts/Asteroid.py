@@ -34,7 +34,7 @@ class Asteroid (BasicEntity):
         self.size_factor = size_factor
         df = Engine_reference().CurrentScene().difficultyFactor
         hp = 120 * size_factor
-        if df > 2:  hp += hp*(df/100.0)
+        if df > 2:  hp += hp*(df/50.0)
         BasicEntity.__init__(self, x, y, "images/asteroid%s.png" % (randint(1,3)), r, hp)
         self.group = Group.ASTEROIDS
         angle = random() * 2 * pi
@@ -48,6 +48,7 @@ class Asteroid (BasicEntity):
         self.diedFromPlanet = False
         self.turret = None
         if Asteroid.CheckChanceForTurret(size_factor):
+            if df > 110:    df = 110.0
             cooldown = 2.7 - (size_factor/Asteroid.GetMaximumFactor()) - df/100 - random()*0.5
             speed = 80 + df
             power = 0.3 + random()*(size_factor/Asteroid.GetMaximumFactor())

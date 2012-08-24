@@ -110,7 +110,7 @@ def CreateShockBombPack():
     return Items.WeaponPickupEffect( Weapons.ShockBomb() )
 
 def CreateBlackholePack():
-    return Items.WeaponPickupEffect( Weapons.Blackhole(20.0) )
+    return Items.WeaponPickupEffect( Weapons.Blackhole(50.0) )
 
 def CreateHyperspacePack():
     return Items.WeaponPickupEffect( Weapons.Hyperspace() )
