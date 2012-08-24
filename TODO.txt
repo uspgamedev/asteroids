@@ -1,3 +1,12 @@
+gasto energia anti grav shield
+velocidade tiro shock bomb e fractal
+power ups depois do congrats
+energy regen + 0.1 fixo
+dropar mais energy boost
+energy regen ramp up quando vc não atira armas
+homing 1.1
+
+####################
 - Criar novos items/powerups
 - arrumar drop de items dos asteroids
 - arrumar efeitos graficos de power up, pra mostrar nome quando vc pega, e piscar qdo ta acabando o tempo
