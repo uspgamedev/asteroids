@@ -69,15 +69,22 @@ def Generate(difficultyFactor, heroData):
     # I had so many awesome ideas using awesome python features to do this 
     # (generate a list of all possible cell (x, y) locations)
 
-    def pickAPlace():
+    def pickAPlace(removeAdjacents=False):
         if len(possibleCells) == 0: return (random.random()*600, random.random()*400)
         i, j = possibleCells.pop()
+        if removeAdjacents:
+            neighbours = [(i+offi,j+offj) for offi in range(-1,2) for offj in range(-1,2) if not (offi,offj) == (0,0)]
+            while len(neighbours) > 0:
+                adjacent = neighbours.pop()
+                if adjacent in possibleCells:   
+                    possibleCells.remove(adjacent)
+                    map[adjacent[0]][adjacent[1]] = True
         map[i][j] = True
         return GetCellCenter(i, j)
     ##
 
     if heroData != None:
-        loc = pickAPlace()
+        loc = pickAPlace(True) #remove adjacent places so that the player starts with a little room
         ship = Ship(loc[0], loc[1], heroData)
         entities.append(ship)
 

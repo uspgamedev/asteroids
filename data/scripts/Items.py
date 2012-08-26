@@ -130,11 +130,15 @@ class AbsoluteEnergyEffect (Effect):
         Effect.__init__(self, lifetime)
         self.amount = amount
         self.regen = isRegen
+        self.increased_rate = False
 
     def Apply(self, dt):
         value = self.amount
         if self.regen:
             value *= dt
+            if not self.increased_rate:
+                self.increased_rate = True
+                self.target.data.energy_regen_rate += self.amount/100.0
         self.target.RestoreEnergy(value)
 
     def GetDetailString(self):  
@@ -182,8 +186,10 @@ class PulseHomingEffect(Effect):
         Effect.__init__(self, 0)
         self.amount = amount
     def Apply(self, dt):
-        if self.target.data.homing >= 1.0:  self.target.data.homing = 1.0
-        else: self.target.data.homing += self.amount
+        if self.target.data.homing + self.amount >= 1.0:
+            self.target.data.homing = 1.0
+        else:
+            self.target.data.homing += self.amount
 
 #################
 class SatelliteEffect(Effect):
@@ -416,6 +422,7 @@ class FractureEffect(Effect):
 class FractalShotEffect(Effect):
     def __init__(self):
         Effect.__init__(self, 0)
+        self.minimum_firing_speed = 200.0
 
     def Apply(self, dt):
         pos = self.target.GetPos()
@@ -423,10 +430,11 @@ class FractalShotEffect(Effect):
         dir = dir.Normalize()
         dir = dir * (self.target.radius*2)
         pos = pos + dir
-        dir = dir.Normalize()
-        dir = dir * ( self.target.velocity.Length()*1.3 )
+        speed = self.target.velocity.Length() * 1.3
+        if speed < self.minimum_firing_speed:   speed = self.minimum_firing_speed
+        vel = dir.Normalize() * ( speed )
         depth = randint(2,5)
-        shot = Weapons.FractalShot(pos.get_x(), pos.get_y(), dir, depth)
+        shot = Weapons.FractalShot(pos.get_x(), pos.get_y(), vel, depth)
         shot.SetParent(self.target)
         AddNewObjectToScene(shot)
 

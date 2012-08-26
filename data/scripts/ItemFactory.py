@@ -101,7 +101,7 @@ def CreateActivePack(x, y):
     return p
 
 def CreateAntiGravShieldPack():
-    return Items.WeaponPickupEffect( Weapons.AntiGravShield(35.0) )
+    return Items.WeaponPickupEffect( Weapons.AntiGravShield(25.0) )
 
 def CreateLaserPack():
     return Items.WeaponPickupEffect( Weapons.Laser() )

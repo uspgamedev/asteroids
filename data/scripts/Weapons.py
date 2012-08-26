@@ -233,6 +233,38 @@ class Weapon:
     def __str__(self): return self.__repr__()
 
 ########
+def GetMultiShotSpreadThreshold():
+    screenSize = Engine_reference().video_manager().video_size()
+    l = min(screenSize.get_x(), screenSize.get_y())
+    return l * 0.5
+
+def GetMultiShotData(num_shots, entity, direction, target_distance, projectile_power, projectile_speed):
+    # calculating index for all shots
+    N = num_shots
+    shotIndexList = range(-(N-int(ceil(N/2.0))), int(ceil(N/2.0)))
+    indexOffset = 0
+    if N % 2 == 0:
+        indexOffset = 0.5
+    #creating shots...
+    ret = []
+    for i in shotIndexList:
+        #first calculate the initial projectile position, based in a circle centered on the parent
+        pos = entity.GetPos()
+        dir = direction.Normalize() * 1.15 * (entity.radius + Projectile.GetActualRadius(projectile_power)) #centralized forward facing direction
+        dir = dir.Rotate( (i+indexOffset) * (pi/7) )
+        pos = pos + dir
+        #then calculate direction/velocity of the projectile, based on distance of mouse to the ship (closer = spread / far = concentrated)
+        velDir = direction.Normalize()
+        spreadThreshold = GetMultiShotSpreadThreshold()
+        if target_distance < spreadThreshold:
+            velDir = velDir.Rotate( (i+indexOffset) * (pi/7) * ( (spreadThreshold-target_distance)/spreadThreshold ) )
+        parent_speed_factor = velDir*entity.velocity.Normalize()
+        if parent_speed_factor < -0.2:  parent_speed_factor = -0.2
+        vel = velDir * (projectile_speed + parent_speed_factor*entity.velocity.Length())
+        ret.append( (pos, vel) )
+    return ret
+
+########
 class Pulse (Weapon):
     def __init__(self):
         Weapon.__init__(self)
@@ -282,46 +314,18 @@ class Pulse (Weapon):
         if self.charge_time <= 0:   return 0
         cost = self.shot_cost * (1 + (power * self.charge_time)) #basic shot cost
         cost = cost + (cost*self.parent.data.homing) # counting homing per shot
-        if mult == -1:    mult = self.GetNumShots()
+        if mult == -1:    mult = self.parent.data.GetNumShots()
         cost = cost *  (1+mult/14.0) #(mult + 1)/2.0   # counting multiplicity
         return cost
-
-    def GetNumShots(self):
-        N = self.parent.data.pulse_shots
-        if N > 14:  N = 14
-        return N
-
-    def getSpreadThreshold(self):
-        screenSize = Engine_reference().video_manager().video_size()
-        l = min(screenSize.get_x(), screenSize.get_y())
-        return l * 0.5
 
     def Shoot(self, direction, target_distance, power, cost):
         #checking energy cost
         if self.parent.energy < cost:    return False
         self.parent.TakeEnergy(cost)
         # calculating index for all shots
-        N = self.GetNumShots()
-        shotIndexList = range(-(N-int(ceil(N/2.0))), int(ceil(N/2.0)))
-        indexOffset = 0
-        if N % 2 == 0:
-            indexOffset = 0.5
+        N = self.parent.data.GetNumShots()
         #creating shots...
-        for i in shotIndexList:
-            #first calculate the initial projectile position, based in a circle centered on the parent
-            pos = self.parent.GetPos()
-            dir = direction.Normalize() * 1.15 * (self.parent.radius + Projectile.GetActualRadius(power)) #centralized forward facing direction
-            dir = dir.Rotate( (i+indexOffset) * (pi/7) )
-            pos = pos + dir
-            #then calculate direction/velocity of the projectile, based on distance of mouse to the ship (closer = spread / far = concentrated)
-            velDir = direction.Normalize()
-            spreadThreshold = self.getSpreadThreshold()
-            if target_distance < spreadThreshold:
-                velDir = velDir.Rotate( (i+indexOffset) * (pi/7) * ( (spreadThreshold-target_distance)/spreadThreshold ) )
-            vel = self.parent.velocity + (velDir * self.projectile_speed)
-            parent_speed_factor = velDir*self.parent.velocity.Normalize()
-            if parent_speed_factor < -0.2:  parent_speed_factor = -0.2
-            vel = velDir.Normalize() * (self.projectile_speed + parent_speed_factor*self.parent.velocity.Length())
+        for pos, vel in GetMultiShotData(N, self.parent, direction, target_distance, power, self.projectile_speed):
             #create projectile and set it up
             proj = Projectile(pos.get_x(), pos.get_y(), vel, power, self.parent.data.pulse_damage, True)
             proj.SetParent(self.parent)
@@ -347,13 +351,17 @@ class AntiGravShield(GravityWell, Weapon):
     def Activate(self, parent):
         Weapon.Activate(self, parent)
         self.SetBaseRadius(parent.radius*3)
-        self.mass *= 10
+        self.mass *= 12
         self.AddIDToIgnoreList(parent.id)
         AddNewObjectToScene(self)
 
     def Toggle(self, active, dt):
-        self.active = active
-        self.Update(dt)
+        if active and not self.active:
+            if self.parent.energy > self.parent.max_energy*0.1:
+                self.active = active
+        else:
+            self.active = active
+        self.HandleLowEnergyShutdown()
         return self.active
 
     def Update(self, dt):
@@ -363,10 +371,14 @@ class AntiGravShield(GravityWell, Weapon):
             GravityWell.Update(self, dt)
             self.SetPos( self.parent.GetPos() )
             if self.active and hasattr(self.parent, "energy"):
-                if self.parent.energy < self.parent.max_energy*0.05:
-                    self.active = False
-                else:
+                if not self.HandleLowEnergyShutdown():
                     self.parent.TakeEnergy( self.energyCostPerSec * dt )
+
+    def HandleLowEnergyShutdown(self):
+        if self.parent.energy < self.parent.max_energy*0.01:
+            self.active = False
+            return True
+        return False
 
     def Dismantle(self):
         self.Delete()
@@ -429,25 +441,34 @@ class ShockBomb(Weapon):
         if active and self.can_shoot:
             self.can_shoot = False
             mouse_dir = Engine_reference().input_manager().GetMousePosition() - self.parent.GetPos()
+            mouse_dist = mouse_dir.Length()
             mouse_dir = mouse_dir.Normalize()
-            return self.Shoot(mouse_dir)
+            return self.Shoot(mouse_dir, mouse_dist)
         elif not active:
             self.can_shoot = True
         return False
  
-    def Shoot(self, direction):
-        if self.parent.energy < self.energy_cost:    return False
-        self.parent.TakeEnergy(self.energy_cost)
+    def Shoot(self, direction, target_dist):
+        N = int(ceil(self.parent.data.GetNumShots()/2.0))
+        if N == 0:  N = 1
+        num_shots = 1
+        cost = self.energy_cost
+
+        for i in range(N-1):
+            if self.parent.energy < cost+self.energy_cost*0.15:   break 
+            num_shots += 1
+            cost += self.energy_cost*0.2
+
+        if self.parent.energy < cost:    return False
+        self.parent.TakeEnergy(cost)
         power = 1.0
-        pos = self.parent.GetPos()
-        dir = direction.Normalize() * 1.15 * (self.parent.radius + Projectile.GetActualRadius(power))
-        pos = pos + dir
-        vel = self.parent.velocity + (direction.Normalize() * self.projectile_speed)
-        proj = Projectile(pos.get_x(), pos.get_y(), vel, power, 10.0, True)
-        proj.SetParent(self.parent)
-        proj.AddOnHitEvent(self.WarheadDetonation)
-        proj.node.modifier().set_color( Color(1.0, 1.0, 0.1, 1.0) )
-        AddNewObjectToScene(proj)
+
+        for pos, vel in GetMultiShotData(num_shots, self.parent, direction, target_dist, power, self.projectile_speed):
+            proj = Projectile(pos.get_x(), pos.get_y(), vel, power, 10.0, True)
+            proj.SetParent(self.parent)
+            proj.AddOnHitEvent(self.WarheadDetonation)
+            proj.node.modifier().set_color( Color(1.0, 1.0, 0.1, 1.0) )
+            AddNewObjectToScene(proj)
         PlaySound("fire.wav")
         return True
 

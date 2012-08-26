@@ -34,7 +34,7 @@ class ManagerScene (Scene):
         self.difficulty = 0.5
         self.points = 0
         self.status = ManagerScene.IDLE
-        self.heroData = Ship.ShipData(100.0, 100.0, 25.0, 1, 0.0)
+        self.heroData = Ship.ShipData(100.0, 100.0, 10.0, 25.0, 1, 0.0)
         strFuncs = [self.GetLivesText, self.GetDifficultyText, self.GetPointsText]
         self.stats = BarUI.StatsUI(self, 100.0, 100.0, strFuncs, Color(0.6,0.6,0.6), 0.4)
         self.interface_node().AddChild(self.stats.node)
@@ -113,13 +113,21 @@ class ManagerScene (Scene):
         pass
 
 class SceneFinishTask(Task):
-    def __init__(self, delay):
+    def __init__(self, delay, scene):
         self.timeRemaining = delay
+        self.scene = scene
 
     def __call__(self, dt):
         self.timeRemaining -= dt
         if self.timeRemaining <= 0:
-            Engine_reference().CurrentScene().Finish()
+            if self.scene.managerScene.status == ManagerScene.PLAYER_WON:
+                hero_effects = []
+                if self.scene.hero.right_weapon != None:
+                    hero_effects = [self.scene.hero.right_weapon.GetCreationFunc()]
+                hero_effects = hero_effects + [e.GetCreationFunc() for e in self.scene.hero.GetActiveEffectsList()]
+                self.scene.managerScene.hero_effects = hero_effects
+
+            self.scene.Finish()
             return False
         return True
 
@@ -144,7 +152,7 @@ class AsteroidsScene (Scene):
         self.managerScene = managerScene
         strFuncs = [self.managerScene.GetLivesText, self.managerScene.GetDifficultyText, self.managerScene.GetPointsText]
         self.stats = BarUI.StatsUI(managerScene, 0.0, 0.0, strFuncs, Color(0.0,0.0,0.0), 0.4)
-        heroFuncs = [self.HeroPulseStats, self.HeroWeaponStats, self.HeroLifeStats, self.HeroEnergyStats, self.HeroLifeRegen, self.HeroEnergyRegen]
+        heroFuncs = [self.HeroPulseStats, self.HeroWeaponStats, self.HeroLifeStats, self.HeroEnergyStats, self.HeroActualEnergyRegenRate, self.HeroLifeRegen, self.HeroEnergyRegen]
         self.hero_stats = BarUI.StatsUI(managerScene, Config.resolution.get_x()-150.0, 0.0, heroFuncs, Color(0.0,0.0,0.0), 0.4)
         self.hud = Node()
         self.interface_node().AddChild(self.hud)
@@ -170,6 +178,16 @@ class AsteroidsScene (Scene):
     def HeroEnergyStats(self):
         if self.hero != None and not self.hero.is_destroyed:
             return " Energy: %2.2f/%s " % (self.hero.energy, self.hero.max_energy)
+        return ""
+
+    def HeroActualEnergyRegenRate(self):
+        if self.hero != None and not self.hero.is_destroyed:
+            rate = self.hero.GetActualEnergyRegenRate()
+            effects = self.hero.GetActiveEffectsList()
+            for e in effects:
+                if e.GetDetailString().count("Energy Regen"):
+                    rate += e.amount
+            return " Energy Regen: %2.2f/sec " % rate
         return ""
 
     def HeroLifeRegen(self):
@@ -292,21 +310,18 @@ class AsteroidsScene (Scene):
     def CheckForEndGame(self):
         if self.finishTextNode != None: return
         if self.asteroid_count <= 0:
-            if self.hero.right_weapon != None:
-                self.hero_effects = [self.hero.right_weapon.GetCreationFunc()]
-            self.hero_effects = self.hero_effects + [e.GetCreationFunc() for e in self.hero.GetActiveEffectsList()]
             self.SetAndShowSceneEndText("GameWon")
-            self.managerScene.SetGameResult(True, self.hero_effects)
+            self.managerScene.SetGameResult(True, []) #SceneFinishTask will take care of passing hero's active effects to the manager
             self.managerScene.UpdatePoints( self.GetLivePlanetsPoints() * self.managerScene.difficulty )
             phl = 100
             if self.hero != None:
                 phl = self.hero.life * 5
             self.managerScene.UpdatePoints( phl )
-            self.AddTask(SceneFinishTask(5.0))
+            self.AddTask(SceneFinishTask(5.0, self))
         elif not self.ship_alive:
             self.SetAndShowSceneEndText("GameOver")
             self.managerScene.SetGameResult(False, self.hero_effects)
-            self.AddTask(SceneFinishTask(5.0))
+            self.AddTask(SceneFinishTask(5.0, self))
         
     def Focus(self):
         self.managerScene.radio.Play()

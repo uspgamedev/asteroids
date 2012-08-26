@@ -6,7 +6,7 @@ from Weapons import Turret
 from ItemFactory import CreatePowerUp
 import Config
 from random import random, randint, shuffle
-from math import pi
+from math import pi, cos
 
 class Asteroid (BasicEntity):
     BASE_RADIUS = 30.0
@@ -73,18 +73,25 @@ class Asteroid (BasicEntity):
             pieceNumber = randint(2,3)
             factor = self.size_factor / 1.75
             #print self, "is splitting, into factor", factor
+            scene = Engine_reference().CurrentScene()
             for i in range(pieceNumber):
                 v = direction.Rotate(angles.pop())
+                if hasattr(scene, "hero") and scene.hero != None and not scene.hero.is_destroyed:
+                    toHero = scene.hero.GetPos() - self.GetPos()
+                    if toHero.Length() < self.radius*3:
+                        while cos(pi/4.0) < (toHero.Normalize()*v) <= 1.0:
+                            v = direction.Rotate(angles.pop())
+
                 v = v * ((self.radius+Asteroid.GetActualRadius(factor))*1.15)
                 pos = self.GetPos() + v
                 ast = Asteroid(pos.get_x(), pos.get_y(), factor)
                 v = v.Normalize()
                 speed = self.velocity.Length()
-                v = v * (randint(int(speed*0.60), int(speed*1.40)))
+                v = v * speed*(0.6+random()*0.6)
                 ast.ApplyVelocity(v)
                 AddNewObjectToScene(ast)
             ###
-            df = Engine_reference().CurrentScene().difficultyFactor
+            df = scene.difficultyFactor
             plus = 0.5 * (self.size_factor / Asteroid.GetMaximumFactor()  -  df/200)
             chance = Config.baseDropRate + plus
             if random() <= chance:

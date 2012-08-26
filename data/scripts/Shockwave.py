@@ -89,6 +89,7 @@ class Shockwave (GravityWell):
 
             wave_speed = ( self.radius_range[1] - self.radius_range[0] ) / self.max_lifetime
             v = v * (wave_speed/1.02)
-
+        if target.CheckType("Projectile") and target.is_destroyed:
+            target.CallOnHitEvents(self)
         v = v * self.shock_force_factor
         target.ApplyVelocity(v)

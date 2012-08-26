@@ -7,7 +7,7 @@ from Shockwave import Shockwave
 from Animations import CreateExplosionFromCollision
 import Config
 from random import random, randint, shuffle
-from math import pi
+from math import pi, cos
 
 
 # yes, Planet is pretty similar to Asteroid... But, whatever =P
@@ -49,8 +49,15 @@ class Planet (BasicEntity):
             direction = direction.Normalize()
             factor = 0.75
             #print self, "is breaking, into factor", factor
+            scene = Engine_reference().CurrentScene()
             for i in range(randint(2,5)):
                 v = direction.Rotate(angles.pop())
+                if hasattr(scene, "hero") and scene.hero != None and not scene.hero.is_destroyed:
+                    toHero = scene.hero.GetPos() - self.GetPos()
+                    if toHero.Length() < self.radius*3:
+                        while cos(pi/4.0) < (toHero.Normalize()*v) <= 1.0:
+                            v = direction.Rotate(angles.pop())
+
                 v = v * ((self.radius+Asteroid.GetActualRadius(factor))*0.5)
                 pos = pos + v
                 ast = Asteroid(pos.get_x(), pos.get_y(), factor)

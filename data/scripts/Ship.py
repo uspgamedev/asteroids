@@ -10,10 +10,11 @@ from math import pi
 from random import randint
 
 class ShipData:
-    def __init__(self, max_life, max_energy, pulse_damage, pulse_shots, homing):
+    def __init__(self, max_life, max_energy, energy_regen_rate, pulse_damage, pulse_shots, homing):
         self.max_life = max_life
         self.original_max_life = max_life
         self.max_energy = max_energy
+        self.energy_regen_rate = energy_regen_rate
         self.pulse_damage = pulse_damage
         self.original_pulse_damage = pulse_damage
         self.pulse_shots = pulse_shots
@@ -24,6 +25,11 @@ class ShipData:
 
     def GetBonusLife(self):
         return self.max_life - self.original_max_life
+
+    def GetNumShots(self):
+        N = self.pulse_shots
+        if N > 14:  N = 14
+        return N
 
     def __repr__(self):
         return "{ShipData: [MaxLife=%s][MaxEnergy=%s][PulseDmg=%s][PulseShots=%s][Homing=%s]}" % (self.max_life, self.max_energy, self.pulse_damage, self.pulse_shots, self.homing)
@@ -44,7 +50,8 @@ class Ship (BasicEntity):
         self.data = data
         self.max_energy = self.data.max_energy
         self.energy = self.max_energy
-        self.energy_regen_rate = 10.0       # energy per second
+        self.bonus_regen_counter = 0.0
+        self.bonus_regen_threshold = 5.0
         self.speed = 400.0                  # |acceleration| in a given frame
         self.max_speed = 200.0              # max |velocity| ship can attain.
 
@@ -52,7 +59,7 @@ class Ship (BasicEntity):
         #self.rangeCheck.AttachToEntity(self)
 
         self.pulse_weapon = Weapons.Pulse()
-        self.right_weapon = None#Weapons.Laser() #Weapons.ShockBomb() #AntiGravShield(35)
+        self.right_weapon = None
         self.pulse_weapon.Activate(self)
         #self.right_weapon.Activate(self)
 
@@ -146,7 +153,17 @@ class Ship (BasicEntity):
 
         if not weaponFiring:
             if self.energy < self.max_energy:
-                self.RestoreEnergy(self.energy_regen_rate * dt)
+                self.RestoreEnergy(self.GetActualEnergyRegenRate() * dt)
+            self.bonus_regen_counter += dt
+        else:
+            self.bonus_regen_counter = 0.0
+
+    def GetActualEnergyRegenRate(self):
+        regen_rate = self.data.energy_regen_rate
+        if self.bonus_regen_counter > self.bonus_regen_threshold:
+            regen_rate += self.data.energy_regen_rate*0.25*((self.bonus_regen_counter-self.bonus_regen_threshold)/self.bonus_regen_threshold)
+        return regen_rate
+
 
     def HandleCollision(self, target):
         pass
