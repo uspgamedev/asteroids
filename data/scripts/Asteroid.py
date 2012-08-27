@@ -34,7 +34,7 @@ class Asteroid (BasicEntity):
         self.size_factor = size_factor
         df = Engine_reference().CurrentScene().difficultyFactor
         hp = 120 * size_factor
-        if df > 2:  hp += hp*(df/50.0)
+        if df > 2:  hp += hp*(df/25.0)
         BasicEntity.__init__(self, x, y, "images/asteroid%s.png" % (randint(1,3)), r, hp)
         self.group = Group.ASTEROIDS
         angle = random() * 2 * pi

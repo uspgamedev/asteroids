@@ -529,32 +529,61 @@ class Hyperspace(Weapon):
         self.cooldown = 1.5
         self.time_elapsed = 0.0
         self.enabled = True
+        self.engaged = False
+        self.multi_jumps = 0
+        self.multi_jump_counter = 0.0
+        self.multi_jump_limit = 0.5
 
     def Toggle(self, active, dt):
         if self.enabled:
-            if active:
+            if self.multi_jumps > 0:
+                self.multi_jump_counter += dt
+            jumped = False
+            if active and not self.engaged:
                 mouse_pos = Engine_reference().input_manager().GetMousePosition()
-                return self.Engage(mouse_pos)
+                self.multi_jump_counter = 0.0
+                if self.multi_jumps == 0:
+                    self.multi_jumps = self.parent.data.GetNumShots()
+                    if self.parent.energy < self.energy_cost:    return False
+                    self.parent.TakeEnergy(self.energy_cost)
+                    #print "Started JUMP Chain!", self.multi_jumps
+                self.multi_jumps -= 1
+                if self.multi_jumps == 0:
+                    self.multi_jump_counter += self.multi_jump_limit+1
+                    #print "Finished JUMP Chain..."
+                else:
+                    self.multi_jump_counter = 0.0
+                    #print "Jumped!"
+                jumped = self.Engage(mouse_pos)
+                self.engaged = True
+            elif not active:
+                self.engaged = False
+
+            if self.multi_jump_counter > self.multi_jump_limit:
+                self.multi_jump_counter = 0.0
+                self.multi_jumps = 0
+                self.enabled = False
+                #print "Hyperspace is offline - cooldown"
+            return jumped
         else:
             self.time_elapsed += dt
             if self.time_elapsed > self.cooldown:
                 self.enabled = True
                 self.time_elapsed = 0.0
+                #print "Hyperspace ONLINE!"
         return False
 
     def GetDepartingShockwaveDmg(self):
-        shock = 20.0
-        wave = 5.0
+        shock = 20.0 + self.parent.data.GetBonusDamage()
+        wave = 5.0 + self.parent.data.GetBonusDamage()/20.0
         return (shock, wave)
 
     def GetArrivingShockwaveDmg(self):
-        shock = 10.0
-        wave = 0.5
+        shock = 10.0 + self.parent.data.GetBonusDamage()/2.0
+        wave = 0.5 + self.parent.data.GetBonusDamage()/20.0
         return (shock, wave)
 
     def Engage(self, pos):
-        if self.parent.energy < self.energy_cost:    return False
-        self.parent.TakeEnergy(self.energy_cost)
         dep_dmgs = self.GetDepartingShockwaveDmg()
         dep_ranges = [self.parent.radius*3, 15.0]
         self.CreateShockwave(0.7, dep_ranges, dep_dmgs[0], dep_dmgs[1], -0.5, Color(1.0,0.2,0.2, 0.5)) # slow, small range, more damage
@@ -562,7 +591,6 @@ class Hyperspace(Weapon):
         arr_dmgs = self.GetArrivingShockwaveDmg()
         arr_ranges = [self.parent.radius, self.parent.radius*5]
         self.CreateShockwave(1.0, arr_ranges, arr_dmgs[0], arr_dmgs[1], 1.0, Color(0.8,0.8,0.8, 0.5)) # fast, medium range, low damage pushes stuff
-        self.enabled = False
         return True
 
     def CreateShockwave(self, lifetime, radius_range, shock_dmg, wave_dmg, force_factor, color):
