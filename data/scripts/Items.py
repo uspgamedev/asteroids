@@ -132,6 +132,11 @@ class AbsoluteEnergyEffect (Effect):
         self.regen = isRegen
         self.increased_rate = False
 
+    def GetAttrDict(self):
+        d = Effect.GetAttrDict(self)
+        d["increased_rate"] = self.increased_rate
+        return d
+
     def Apply(self, dt):
         value = self.amount
         if self.regen:

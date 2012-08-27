@@ -344,7 +344,7 @@ from Gravity import GravityWell
 class AntiGravShield(GravityWell, Weapon):
     def __init__(self, energyCostPerSec):
         Weapon.__init__(self)
-        self.energyCostPerSec = energyCostPerSec
+        self.energy_per_sec = energyCostPerSec
         GravityWell.__init__(self, 0, 0, 1)
         self.is_antigrav = True
     
@@ -357,7 +357,7 @@ class AntiGravShield(GravityWell, Weapon):
 
     def Toggle(self, active, dt):
         if active and not self.active:
-            if self.parent.energy > self.parent.max_energy*0.1:
+            if self.parent.energy > self.energy_per_sec*0.5:
                 self.active = active
         else:
             self.active = active
@@ -372,10 +372,10 @@ class AntiGravShield(GravityWell, Weapon):
             self.SetPos( self.parent.GetPos() )
             if self.active and hasattr(self.parent, "energy"):
                 if not self.HandleLowEnergyShutdown():
-                    self.parent.TakeEnergy( self.energyCostPerSec * dt )
+                    self.parent.TakeEnergy( self.energy_per_sec * dt )
 
     def HandleLowEnergyShutdown(self):
-        if self.parent.energy < self.parent.max_energy*0.01:
+        if self.parent.energy < self.energy_per_sec*0.05:
             self.active = False
             return True
         return False
@@ -395,7 +395,7 @@ class Laser(Weapon):
         self.laser_width = 16.0
 
     def GetDamage(self):
-        return self.damage_per_sec + self.parent.data.GetBonusDamage()
+        return self.damage_per_sec + self.parent.data.GetBonusDamage() + self.parent.data.GetNumShots()*10
 
     def Toggle(self, active, dt):
         energy_cost = self.energy_per_sec * dt
@@ -403,7 +403,7 @@ class Laser(Weapon):
             if not self.beam:
                 if self.parent.energy < self.minimum_energy_required:
                     return False
-                self.beam = LaserBeam(self.parent, self.parent.GetDirection(), self.laser_width, self.GetDamage() )
+                self.beam = LaserBeam(self.parent, self.parent.GetDirection(), self.laser_width+self.parent.data.GetNumShots(), self.GetDamage() )
                 AddNewObjectToScene(self.beam)
             self.beam.velocity = self.parent.GetDirection()
             #self.beam.SetBeamLength(self.parent.GetDirection().Length())
@@ -542,12 +542,38 @@ class Hyperspace(Weapon):
                 self.time_elapsed = 0.0
         return False
 
+    def GetDepartingShockwaveDmg(self):
+        shock = 20.0
+        wave = 5.0
+        return (shock, wave)
+
+    def GetArrivingShockwaveDmg(self):
+        shock = 10.0
+        wave = 0.5
+        return (shock, wave)
+
     def Engage(self, pos):
         if self.parent.energy < self.energy_cost:    return False
         self.parent.TakeEnergy(self.energy_cost)
+        dep_dmgs = self.GetDepartingShockwaveDmg()
+        dep_ranges = [self.parent.radius*3, 15.0]
+        self.CreateShockwave(0.7, dep_ranges, dep_dmgs[0], dep_dmgs[1], -0.5, Color(1.0,0.2,0.2, 0.5)) # slow, small range, more damage
         self.parent.SetPos(pos)
+        arr_dmgs = self.GetArrivingShockwaveDmg()
+        arr_ranges = [self.parent.radius, self.parent.radius*5]
+        self.CreateShockwave(1.0, arr_ranges, arr_dmgs[0], arr_dmgs[1], 1.0, Color(0.8,0.8,0.8, 0.5)) # fast, medium range, low damage pushes stuff
         self.enabled = False
         return True
+
+    def CreateShockwave(self, lifetime, radius_range, shock_dmg, wave_dmg, force_factor, color):
+        pos = self.parent.GetPos()
+        wave = Shockwave.Shockwave(pos.get_x(), pos.get_y(), lifetime, radius_range)
+        wave.shock_damage = shock_dmg
+        wave.wave_damage = wave_dmg
+        wave.shock_force_factor = force_factor
+        wave.node.modifier().set_color(color)
+        wave.AddIDToIgnoreList(self.parent.id)
+        AddNewObjectToScene(wave)
 
 ###################################################################################
 ###################################################################################

@@ -1,5 +1,6 @@
 dropar mais energy boost
 multiplicity afetar armas secundarias
+matter absorption deve absorver continuamente ao inves de absorver tudo na hora
 
 ####################
 - variar dano de projetil (talvez de colisao really) baseado na velocidade no momento da colisão
