@@ -54,7 +54,7 @@ class Planet (BasicEntity):
                 v = direction.Rotate(angles.pop())
                 if hasattr(scene, "hero") and scene.hero != None and not scene.hero.is_destroyed:
                     toHero = scene.hero.GetPos() - self.GetPos()
-                    if toHero.Length() < self.radius*3:
+                    if toHero.Length() < self.radius*3 + scene.hero.radius:
                         while cos(pi/4.0) < (toHero.Normalize()*v) <= 1.0:
                             v = direction.Rotate(angles.pop())
 
