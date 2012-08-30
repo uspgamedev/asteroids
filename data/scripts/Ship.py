@@ -51,7 +51,7 @@ class Ship (BasicEntity):
         self.max_energy = self.data.max_energy
         self.energy = self.max_energy
         self.bonus_regen_counter = 0.0
-        self.bonus_regen_threshold = 5.0
+        self.bonus_regen_threshold = 3.0
         self.speed = 400.0                  # |acceleration| in a given frame
         self.max_speed = 200.0              # max |velocity| ship can attain.
 

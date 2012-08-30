@@ -121,10 +121,11 @@ class SceneFinishTask(Task):
         self.timeRemaining -= dt
         if self.timeRemaining <= 0:
             if self.scene.managerScene.status == ManagerScene.PLAYER_WON:
-                hero_effects = []
-                if self.scene.hero.right_weapon != None:
+                if self.scene.hero != None and self.scene.hero.right_weapon != None:
                     hero_effects = [self.scene.hero.right_weapon.GetCreationFunc()]
-                hero_effects = hero_effects + [e.GetCreationFunc() for e in self.scene.hero.GetActiveEffectsList()]
+                    hero_effects = hero_effects + [e.GetCreationFunc() for e in self.scene.hero.GetActiveEffectsList()]
+                else:
+                    hero_effects = self.scene.hero_effects
                 self.scene.managerScene.hero_effects = hero_effects
 
             self.scene.Finish()

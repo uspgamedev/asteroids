@@ -278,9 +278,11 @@ class ShieldEffect(Effect):
         self.SetPos( self.target.GetPos() )
         if self.life > 0 and not self.target.is_destroyed:
             self.lifetime = 10.0
+            self.target.invulnerable = True
             if self.life_hud != None:   self.life_hud.Update()
         else:
             self.lifetime = 0.0
+            self.target.invulnerable = False
 
 
     def HandleCollision(self, coltarget):
@@ -361,6 +363,7 @@ class MatterAbsorptionEffect(Effect):
         
     def Apply(self, dt):
         self.SetPos( self.target.GetPos() )
+        self.target.invulnerable = True
         if self.life_hud != None:   self.life_hud.Update()
 
     def HandleCollision(self, coltarget):
