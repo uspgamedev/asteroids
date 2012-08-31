@@ -15,6 +15,8 @@ import Ship
 
 import ItemFactory
 
+CHEATS = False
+
 def StartupScene():
     #print "STARTING SCENE"
     cena = ManagerScene()
@@ -357,29 +359,30 @@ class AsteroidsScene (Scene):
         elif input.KeyPressed(K_SPACE) or input.KeyPressed(K_p):
             Engine_reference().PushScene( PauseScene() )
         ### cheats
-        elif input.KeyPressed(K_PAGEUP):
-            self.managerScene.difficulty += 1
-        elif input.KeyPressed(K_PAGEDOWN):
-            self.managerScene.difficulty -= 1
-        elif input.KeyPressed(K_HOME):
-            self.managerScene.lives += 1
-        elif input.KeyPressed(K_END):
-            self.hero.invulnerable = True
-        elif input.KeyPressed(K_1):
-            cheat = ItemFactory.CreateRepairPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
-            self.AddObject(cheat)
-        elif input.KeyPressed(K_2):
-            cheat = ItemFactory.CreatePulsePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
-            self.AddObject(cheat)
-        elif input.KeyPressed(K_3):
-            cheat = ItemFactory.CreatePassivePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
-            self.AddObject(cheat)
-        elif input.KeyPressed(K_4):
-            cheat = ItemFactory.CreateActivePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
-            self.AddObject(cheat)
-        elif input.KeyPressed(K_5):
-            cheat = ItemFactory.CreateInstantPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
-            self.AddObject(cheat)
+        if CHEATS:
+            if input.KeyPressed(K_PAGEUP):
+                self.managerScene.difficulty += 1
+            elif input.KeyPressed(K_PAGEDOWN):
+                self.managerScene.difficulty -= 1
+            elif input.KeyPressed(K_HOME):
+                self.managerScene.lives += 1
+            elif input.KeyPressed(K_END):
+                self.hero.invulnerable = True
+            elif input.KeyPressed(K_1):
+                cheat = ItemFactory.CreateRepairPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+                self.AddObject(cheat)
+            elif input.KeyPressed(K_2):
+                cheat = ItemFactory.CreatePulsePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+                self.AddObject(cheat)
+            elif input.KeyPressed(K_3):
+                cheat = ItemFactory.CreatePassivePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+                self.AddObject(cheat)
+            elif input.KeyPressed(K_4):
+                cheat = ItemFactory.CreateActivePack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+                self.AddObject(cheat)
+            elif input.KeyPressed(K_5):
+                cheat = ItemFactory.CreateInstantPack(self.hero.GetPos().get_x(), self.hero.GetPos().get_y())
+                self.AddObject(cheat)
             
     def HandleCollisions(self):
         collision_list = CollisionInstanceList()
