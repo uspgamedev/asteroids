@@ -1,6 +1,6 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(asteroids CXX C)
+PROJECT(asteroids_wars CXX C)
 SET(GAME_EXENAME asteroids_wars)
 SET(GAME_NAME "Asteroids Wars")
 
@@ -73,10 +73,7 @@ include_directories(${SDLTTF_INCLUDE_DIR})
 find_package(SDL_image REQUIRED)
 include_directories(${SDLIMAGE_INCLUDE_DIR})
 
-find_package(Lua51 REQUIRED)
-include_directories(${LUA_INCLUDE_DIR})
-
-find_package(PythonLibs 2.7 REQUIRED)
+find_package(PythonLibs 2.6 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 find_library (LUGDK ugdk0.4 lib/)
@@ -119,8 +116,14 @@ TARGET_LINK_LIBRARIES (${GAME_EXENAME}
                          ${OPENGL_LIBRARIES}
                          optimized ${PYTHON_LIBRARIES}
                          ${DEBUGPYLIB}
-                         ${LUA_LIBRARIES}
                         )
+
+if(WIN32)
+    set(ASTEROIDS_DATA_PATH ./data/)
+else(WIN32)
+    set(ASTEROIDS_DATA_PATH /usr/share/asteroids_wars/)
+endif(WIN32)
+configure_file(src/config.h.in src/config.h)
 
 ##########################################
 # Package Configuration
@@ -135,9 +138,9 @@ set (CPACK_PACKAGE_VERSION_MAJOR ${ASTEROIDS_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${ASTEROIDS_VERSION_MINOR})
 set (CPACK_PACKAGE_VERSION_PATCH ${ASTEROIDS_VERSION_PATCH})
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple, crazy and fun asteroids-like game made by USPGameDev.")
-set (CPACK_DEBIAN_PACKAGE_NAME "asteroids_wars")
+set (CPACK_DEBIAN_PACKAGE_NAME "asteroids-wars")
 set (CPACK_DEBIAN_PACKAGE_HOMEPAGE ${HOME_URL})
-set (CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.2), libgcc1 (>= 1:4.1.1), libstdc++6 (>= 4.4.0), libsdl1.2, libsdl-image1.2, libsdl-mixer1.2, libsdl-ttf2.0-0, python (>= 2.6)")
+set (CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.2), libgcc1 (>= 1:4.1.1), libstdc++6 (>= 4.4.0), libsdl1.2debian, libsdl-image1.2, libsdl-mixer1.2, libsdl-ttf2.0-0, python (>= 2.6)")
 set (DEBIAN_PACKAGE_BUILDS_DEPENDS "libc6 (>= 2.2), libgcc1 (>= 1:4.1.1), libstdc++6 (>= 4.4.0), libugdk0.4, python-dev (>= 2.6), cmake")
 set (CPACK_NSIS_CONTACT ${CONTACT_MAIL})
 set (CPACK_NSIS_DISPLAY_NAME ${GAME_NAME})
@@ -149,3 +152,8 @@ include (CPack)
 
 #
 ##########################################
+
+install(TARGETS ${GAME_EXENAME} DESTINATION bin)
+install(DIRECTORY data/ 
+        DESTINATION ${ASTEROIDS_DATA_PATH})
+

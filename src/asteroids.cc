@@ -19,6 +19,8 @@
 #include <ugdk/script/virtualobj.h>
 #include <ugdk/script/languages/python/pythonwrapper.h>
 
+#include "config.h"
+
 using ugdk::Vector2D;
 using ugdk::script::VirtualObj;
 
@@ -45,12 +47,12 @@ int main(int argc, char *argv[]) {
 #endif
     engine_config.window_size  = Vector2D(640.0, 480.0);
     engine_config.fullscreen   = false;
-    engine_config.base_path = "./data/";
+    engine_config.base_path = ASTEROIDS_DATA_PATH;
     struct stat st;
     // Removing the trailing slash.
     int s = stat(engine_config.base_path.substr(0, engine_config.base_path.size() - 1).c_str(), &st);
     if(s < 0 && errno == ENOENT)
-        engine_config.base_path = "./";
+        engine_config.base_path = "./data/";
     engine_config.window_icon = "";
 
     InitScripts();

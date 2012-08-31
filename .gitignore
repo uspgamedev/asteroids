@@ -25,3 +25,7 @@ cmake_install.cmake
 CPackConfig.cmake
 CPackSourceConfig.cmake
 /asteroids_wars
+src/config.h
+install_manifest.txt
+*.deb
+_CPack_Packages/
