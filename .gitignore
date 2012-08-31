@@ -22,3 +22,6 @@ cmake_install.cmake
 *.opensdf
 /*.sln
 /*.vcxproj
+CPackConfig.cmake
+CPackSourceConfig.cmake
+/asteroids_wars

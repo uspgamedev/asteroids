@@ -17,8 +17,6 @@
 #include <ugdk/script/scriptmanager.h>
 #include <ugdk/script/langwrapper.h>
 #include <ugdk/script/virtualobj.h>
-#include <ugdk/script/languages/lua/luawrapper.h>
-#include <ugdk/script/languages/lua/header.h>
 #include <ugdk/script/languages/python/pythonwrapper.h>
 
 using ugdk::Vector2D;
@@ -29,12 +27,6 @@ using ugdk::script::VirtualObj;
 static void InitScripts() {
     using ugdk::script::lua::LuaWrapper;
     using ugdk::script::python::PythonWrapper;
-
-    //inicializando lua
-    LuaWrapper* lua_wrapper = new LuaWrapper();
-    ugdk::RegisterLuaModules(lua_wrapper);
-    pyramidworks::RegisterLuaModules(lua_wrapper);
-    SCRIPT_MANAGER()->Register("Lua", lua_wrapper);
 
     //inicializando python
     PythonWrapper* py_wrapper = new PythonWrapper();
