@@ -2,6 +2,10 @@ dropar mais energy boost
 multiplicity afetar armas secundarias
 matter absorption deve absorver continuamente ao inves de absorver tudo na hora
 
+1) não menciona em nenhum lugar da onde vieram as images/sons, e pela licensa de algumas delas, precisa. (copiar LEGAL.txt do Horus Eye para as sons/musics, quanto as imagens, nao sei direito das licensas do opengameart)
+2) a imagem da nave não é exatamente free... eu tenho uma outra pra usar no lugar que não tem problema (eu que inventei), mas ainda precisará de uns ajustes no gimp
+3) fazer um icone (kinda easy)
+
 ####################
 - variar dano de projetil (talvez de colisao really) baseado na velocidade no momento da colisão
 

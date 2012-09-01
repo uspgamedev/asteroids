@@ -27,7 +27,7 @@ class Shockwave (GravityWell):
         self.scale_range = [1.0, radius_range[1]/radius_range[0]]
         self.affected_targets = []
         self.shock_damage = 30.0    # done once when shockwave hits a target
-        self.wave_damage = 0.1      # done continously while shockwave pushes a target
+        self.wave_damage = 6.0      # done continously while shockwave pushes a target
         self.shock_force_factor = 1.0 # multiplier factor to the shock force, which is the force that pushes/pulls entities from the wave
 
     def SetRadius(self, r):
@@ -38,6 +38,7 @@ class Shockwave (GravityWell):
         self.node.modifier().set_scale( Vector2D(scale, scale) )
         
     def Update(self, dt):
+        GravityWell.Update(self, dt)
         self.lifetime += dt
         r = GetEquivalentValueInRange(self.lifetime, [0, self.max_lifetime], self.radius_range)
         self.SetRadius(r)
@@ -69,8 +70,8 @@ class Shockwave (GravityWell):
         if target.id in self.affected_targets:
             # continuously affecting target...
             wave_speed = ( self.radius_range[1] - self.radius_range[0] ) / self.max_lifetime
-            target.TakeDamage(self.wave_damage)
-            v = v * (wave_speed/10.0)
+            target.TakeDamage(self.wave_damage *self.delta_t)
+            v = v * (wave_speed*self.delta_t)
             return
         else:
             # hitting target for the first time

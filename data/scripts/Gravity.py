@@ -14,6 +14,8 @@ import Config
 # it stronger or weaker.
 GRAVITY_FACTOR = 50.0
 
+#density --> in g/cm^3, default is 5.515  (Earth's density)
+DEFAULT_DENSITY = 5.515
 
 ####################################
 # this is going to be nice :D
@@ -29,6 +31,7 @@ class GravityWell (EntityInterface):
         self.is_antigrav = False
         self.ignore_ids = []
         self.active = True
+        self.delta_t = 0.0
         self.collision_object = CollisionObject(getCollisionManager(), self)  #initialize collision object, second arg is passed to collisionlogic to handle collisions
         self.collision_object.InitializeCollisionClass("Gravity")              # define the collision class
         self.geometry = Circle(self.radius)                           #
@@ -53,6 +56,10 @@ class GravityWell (EntityInterface):
         if ID in self.ignore_ids:
             self.ignore_ids.remove(ID)
 
+    def Update(self, dt):
+        EntityInterface.Update(self, dt)
+        self.delta_t = dt
+
     def HandleCollision(self, target):
         ignore_types = ["Planet"]
         if not self.active or target.type in ignore_types or target.id in self.ignore_ids:
@@ -67,14 +74,16 @@ class GravityWell (EntityInterface):
         if self.is_antigrav:
             grav_vec = grav_vec * -1
 
-        grav_vec = grav_vec * GravForce
+        # GravForce is in pixels/hr^2,  self.delta_t is in secs
+        # GravForce * (1 / (3600**2)) will convert it to pixels/sec^2
+        grav_vec = grav_vec * GravForce * self.delta_t *100
 
         target.ApplyVelocity(grav_vec)
         
 class Blackhole (GravityWell):
     def __init__(self, x, y, radius, lifetime):
         GravityWell.__init__(self, x, y, radius)
-        self.mass = GetMassByRadius(radius, 120.0)
+        self.mass = GetMassByRadius(radius, 150.0)
         self.radius = Config.gamesize.Length()
         self.geometry.set_radius(self.radius)
         self.lifetime = lifetime
@@ -136,7 +145,8 @@ def GetGravForce(plamass, distance):
 #density --> in g/cm^3, default is 5.515  (Earth's density)
 #return ==> mass in Kg
 ################################################################
-def GetMassByRadius(radius, density = 5.515):
+def GetMassByRadius(radius, density = -1):
+    if density == -1:   density = DEFAULT_DENSITY
     densityConversionConst = 10**12
     nKesph = 4.0/3.0
     vol = nKesph * pi * (radius**3)

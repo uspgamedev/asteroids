@@ -142,24 +142,6 @@ class Asteroid (BasicEntity):
             self.ApplyCollisionRollback()
             target.ApplyCollisionRollback()
 
-            ################################
-            #aux = self.velocity
-            #after_speeds = CalculateAfterSpeedBasedOnMomentum(self, target)
-            #self.velocity = target.velocity.Normalize()
-            #target.velocity = aux.Normalize()
-            #sf = 1.0
-            #tf = 1.0
-            #if after_speeds[0] > 80.0:
-            #    st= 0.7
-            #if after_speeds[1] > 80.0:
-            #    tf = 0.7 
-            #self.velocity = self.velocity * (after_speeds[0]*sf)
-            #target.velocity = target.velocity * (after_speeds[1]*tf)
-            #
-            ##self.velocity = target.velocity
-            ##target.velocity = aux
-            ################################
-
             self.TakeDamage(target.GetDamage(self.type))
             target.TakeDamage(self.GetDamage(target.type))
             #print "Asteroid collided with asteroid"

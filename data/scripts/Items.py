@@ -39,7 +39,6 @@ class PowerUp (BasicEntity):
     def setupCollisionObject(self):
         self.collision_object = CollisionObject(getCollisionManager(), self)  #initialize collision object, second arg is passed to collisionlogic to handle collisions
         self.collision_object.InitializeCollisionClass("PowerUp")              # define the collision class
-        self.geometry = Circle(self.radius)                           #
         self.collision_object.set_shape(self.geometry)                # set our shape
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )
         self.collision_object.thisown = 0
@@ -251,7 +250,7 @@ class ShieldEffect(Effect):
         return d
 
     def OnSceneAdd(self, scene):
-        self.radius = self.target.radius * 1.2
+        self.radius = self.target.size.get_y()/2.0
         self.size = Vector2D(self.radius*2, self.radius*2)
         texture_name = "images/shockwave.png"
         texture_obj = Engine_reference().resource_manager().texture_container().Load(texture_name, texture_name)
@@ -341,7 +340,7 @@ class MatterAbsorptionEffect(Effect):
         self.life_hud = None
 
     def OnSceneAdd(self, scene):
-        self.radius = self.target.radius * 1.1
+        self.radius = self.target.size.get_y() /2.0
         self.size = Vector2D(self.radius*2, self.radius*2)
         texture_name = "images/shockwave.png"
         texture_obj = Engine_reference().resource_manager().texture_container().Load(texture_name, texture_name)

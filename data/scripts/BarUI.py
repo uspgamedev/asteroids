@@ -16,13 +16,9 @@ class BarUI:
         if not hasattr(entity, "max_"+attr_name):
             print "WARNING! BarUI can't find attribute %s in entity %s" % ("max_"+attr_name, entity)
 
-        if vertical:
-            self.offset = Vector2D(offset + BAR_SIZE, 0.0)
-        else:
-            self.offset = Vector2D(0.0, offset + BAR_SIZE)
 
         self.node = Node()
-        self.node.modifier().set_offset( self.offset )
+        self.SetOffset(offset, vertical)
         if vertical:
             self.node.modifier().set_rotation( pi/2.0)
         self.node.thisown = 0
@@ -42,6 +38,13 @@ class BarUI:
         self.node.AddChild(self.bar_node)
 
         self.type = str(self.__class__)
+
+    def SetOffset(self, offset, vertical = False):
+        if vertical:
+            self.offset = Vector2D(offset + BAR_SIZE, 0.0)
+        else:
+            self.offset = Vector2D(0.0, offset + BAR_SIZE)
+        self.node.modifier().set_offset( self.offset )
 
     def Update(self):
         if hasattr(self.entity, self.attr_name) and hasattr(self.entity, "max_"+self.attr_name):

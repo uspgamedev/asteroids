@@ -250,7 +250,8 @@ def GetMultiShotData(num_shots, entity, direction, target_distance, projectile_p
     for i in shotIndexList:
         #first calculate the initial projectile position, based in a circle centered on the parent
         pos = entity.GetPos()
-        dir = direction.Normalize() * 1.15 * (entity.radius + Projectile.GetActualRadius(projectile_power)) #centralized forward facing direction
+        ent_firing_distance = min(entity.size.get_x(), entity.size.get_y())*0.7
+        dir = direction.Normalize() * (ent_firing_distance + Projectile.GetActualRadius(projectile_power)) #centralized forward facing direction
         dir = dir.Rotate( (i+indexOffset) * (pi/7) )
         pos = pos + dir
         #then calculate direction/velocity of the projectile, based on distance of mouse to the ship (closer = spread / far = concentrated)
@@ -350,8 +351,8 @@ class AntiGravShield(GravityWell, Weapon):
     
     def Activate(self, parent):
         Weapon.Activate(self, parent)
-        self.SetBaseRadius(parent.radius*3)
-        self.mass *= 12
+        self.SetBaseRadius(parent.radius)
+        self.mass *= 10
         self.AddIDToIgnoreList(parent.id)
         AddNewObjectToScene(self)
 
@@ -429,7 +430,7 @@ class ShockBomb(Weapon):
         self.shock_radius_range = [5.0, 180.0]
         self.can_shoot = True
         self.shock_damage = 80.0    # done once when shockwave hits a target
-        self.wave_damage = 0.5      # done continously while shockwave pushes a target
+        self.wave_damage = 17.0      # done continously while shockwave pushes a target
 
     def GetShockDamage(self):
         return self.shock_damage + self.parent.data.GetBonusDamage()
@@ -466,6 +467,7 @@ class ShockBomb(Weapon):
         for pos, vel in GetMultiShotData(num_shots, self.parent, direction, target_dist, power, self.projectile_speed):
             proj = Projectile(pos.get_x(), pos.get_y(), vel, power, 10.0, True)
             proj.SetParent(self.parent)
+            proj.hitsFriendlyToParent = False
             proj.AddOnHitEvent(self.WarheadDetonation)
             proj.node.modifier().set_color( Color(1.0, 1.0, 0.1, 1.0) )
             AddNewObjectToScene(proj)
@@ -575,21 +577,21 @@ class Hyperspace(Weapon):
 
     def GetDepartingShockwaveDmg(self):
         shock = 20.0 + self.parent.data.GetBonusDamage()
-        wave = 5.0 + self.parent.data.GetBonusDamage()/20.0
+        wave = 12.0 + self.parent.data.GetBonusDamage()/20.0
         return (shock, wave)
 
     def GetArrivingShockwaveDmg(self):
         shock = 10.0 + self.parent.data.GetBonusDamage()/2.0
-        wave = 0.5 + self.parent.data.GetBonusDamage()/20.0
+        wave = 1.0 + self.parent.data.GetBonusDamage()/20.0
         return (shock, wave)
 
     def Engage(self, pos):
         dep_dmgs = self.GetDepartingShockwaveDmg()
-        dep_ranges = [self.parent.radius*3, 15.0]
+        dep_ranges = [self.parent.radius*2, 15.0]
         self.CreateShockwave(0.7, dep_ranges, dep_dmgs[0], dep_dmgs[1], -0.5, Color(1.0,0.2,0.2, 0.5)) # slow, small range, more damage
         self.parent.SetPos(pos)
         arr_dmgs = self.GetArrivingShockwaveDmg()
-        arr_ranges = [self.parent.radius, self.parent.radius*5]
+        arr_ranges = [self.parent.radius, self.parent.radius*4]
         self.CreateShockwave(1.0, arr_ranges, arr_dmgs[0], arr_dmgs[1], 1.0, Color(0.8,0.8,0.8, 0.5)) # fast, medium range, low damage pushes stuff
         return True
 

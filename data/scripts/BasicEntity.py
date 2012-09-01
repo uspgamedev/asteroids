@@ -122,9 +122,9 @@ class Group:
 
 class BasicEntity (EntityInterface):
     nextID = 1
-    def __init__(self, x, y, texture_name, radius, life):
+    def __init__(self, x, y, texture_name, radius, life, WtoHratio=1.0):
         EntityInterface.__init__(self, x, y, radius)
-        self.size = Vector2D(self.radius*2, self.radius*2)
+        self.size = Vector2D(self.radius*2, self.radius*2*WtoHratio)
         texture_obj = Engine_reference().resource_manager().texture_container().Load(texture_name, texture_name)
 
         self.shape = TexturedRectangle( texture_obj, self.size )
@@ -150,12 +150,15 @@ class BasicEntity (EntityInterface):
         self.group = Group.UNDETERMINED
         self.wraps_around_boundary = True
         self.invulnerable = False
+        self.setupCollisionGeometry()
         self.setupCollisionObject()
+
+    def setupCollisionGeometry(self):
+        self.geometry = Circle(self.radius)
 
     def setupCollisionObject(self):
         self.collision_object = CollisionObject(getCollisionManager(), self)  #initialize collision object, second arg is passed to collisionlogic to handle collisions
         self.collision_object.InitializeCollisionClass("Entity")              # define the collision class
-        self.geometry = Circle(self.radius)                           #
         self.collision_object.set_shape(self.geometry)                # set our shape
         #finally add collision logics to whatever collision class we want
         self.collision_object.AddCollisionLogic("Entity", BasicColLogic(self) )

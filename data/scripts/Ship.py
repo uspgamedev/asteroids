@@ -1,7 +1,8 @@
-from ugdk.ugdk_math import Vector2D
+from ugdk.ugdk_math import Vector2D, Vector2DList
 from ugdk.ugdk_base import Color, Engine_reference, ResourceManager_CreateTextFromLanguageTag
 from ugdk.ugdk_input import InputManager, K_w, K_a, K_s, K_d, M_BUTTON_LEFT, K_ESCAPE, M_BUTTON_RIGHT
 from ugdk.ugdk_graphic import Node
+from ugdk.pyramidworks_geometry import ConvexPolygon
 from BasicEntity import BasicEntity, Group, RangeCheck, GetEquivalentValueInRange
 import Weapons
 from BarUI import BarUI, BAR_SIZE
@@ -38,7 +39,10 @@ class ShipData:
 
 class Ship (BasicEntity):
     def __init__(self, x, y, data):
-        BasicEntity.__init__(self, x, y, "images/ship.png", 20.0, data.max_life)
+        self.image_w = 420.0
+        self.image_h = 830.0
+        BasicEntity.__init__(self, x, y, "images/ship.png", 20.0, data.max_life, self.image_h/self.image_w)
+        self.radius = (self.size*0.5).Length()
         self.node.set_zindex(1.0)
         self.graphic_node = Node()
         self.node.set_drawable(None)
@@ -63,11 +67,37 @@ class Ship (BasicEntity):
         self.pulse_weapon.Activate(self)
         #self.right_weapon.Activate(self)
 
-        self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), self.radius+BAR_SIZE)
+        offset = self.size.get_y()/2.0
+        self.life_hud.SetOffset(offset)
+
+        self.energy_hud = BarUI(self, "energy", Color(0.0,0.0,1.0,1.0), offset+BAR_SIZE)
         self.hud_node.AddChild(self.energy_hud.node)
 
-        self.charge_hud = BarUI(self.pulse_weapon, "charge_time", Color(1.0,1.0,0.0,1.0), -self.radius-2*BAR_SIZE)
+        self.charge_hud = BarUI(self.pulse_weapon, "charge_time", Color(1.0,1.0,0.0,1.0), -offset-2*BAR_SIZE)
         self.hud_node.AddChild(self.charge_hud.node)
+
+    def setupCollisionGeometry(self):
+        self.geometry = ConvexPolygon(self.GetVertices())
+
+    def GetVertices(self):
+        pos = self.GetPos()
+        dir = self.GetDirection().Normalize()
+        sideDir = Vector2D(-dir.get_y(), dir.get_x())
+        sideDir = sideDir * (self.size.get_x()/2.0)
+        #middleL = pos + sideDir
+        #middleR = pos + (sideDir * -1)
+        middleL = sideDir
+        middleR = (sideDir * -1)
+        offset = dir * self.size.get_y()/2.0
+        v1 = middleL + (offset*-1)
+        v2 = middleL + offset
+        v3 = middleR + offset
+        v4 = middleR + (offset * -1)
+
+        return Vector2DList([v1, v2, v3, v4])
+
+    def UpdateVertices(self):
+        self.geometry.set_vertices(self.GetVertices())
 
     def set_max_life(self, value):
         self.data.max_life = value
@@ -100,7 +130,7 @@ class Ship (BasicEntity):
 
     def Update(self, dt):
         self.CheckCommands(dt)
-
+        self.UpdateVertices()
         self.velocity = self.velocity + (self.acceleration * dt)
         if (self.velocity.Length() > self.max_speed):
             self.velocity = self.velocity * (self.max_speed/self.velocity.Length())
@@ -176,7 +206,7 @@ class Satellite(BasicEntity):
         self.parent = parent
         x = parent.GetPos().get_x()
         y = parent.GetPos().get_y()
-        BasicEntity.__init__(self, x, y, "images/satellite.png", parent.radius/2.0, life)
+        BasicEntity.__init__(self, x, y, "images/satellite.png", 10.0, life)
         self.orbit_angle = starting_angle
         self.angle_speed = pi/2.5  # angle speed in radians per second
         self.turret = Weapons.Turret(self, "Asteroid", 0.6, 170.0, 0.6, Color(0.0, 1.0, 0.1, 0.7))
@@ -186,7 +216,7 @@ class Satellite(BasicEntity):
     def CalculateOrbitPos(self):
         pos = self.parent.GetPos()
         direction = Vector2D(0, 1).Rotate(self.orbit_angle).Normalize()
-        orbit = direction * (self.parent.radius + self.radius + 7.0)
+        orbit = direction * (self.parent.radius*0.9 + self.radius)
         return orbit + pos
 
     def Update(self, dt):
