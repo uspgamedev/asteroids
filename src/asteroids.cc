@@ -5,6 +5,8 @@
 #include <string>
 #include <list>
 
+#include "SDL.h"
+
 #include <ugdk/base/engine.h>
 #include <ugdk/base/configuration.h>
 #include <ugdk/graphic/videomanager.h>
@@ -62,6 +64,7 @@ int main(int argc, char *argv[]) {
 
     Vector2D* resolution = config["resolution"].value<Vector2D*>();
     VIDEO_MANAGER()->ChangeResolution(*resolution, config["fullscreen"].value<bool>());
+    VIDEO_MANAGER()->SetVSync(true);
 
     VirtualObj languages = SCRIPT_MANAGER()->LoadModule("Languages");
     languages["RegisterLanguages"]();
