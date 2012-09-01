@@ -45,6 +45,9 @@ if(WIN32)
     add_definitions(-DWIN32)
 endif()
 
+if (WIN32) # Adding the icon to the windows executable
+ set(GAME_SRCS ${GAME_SRCS} asteroids_wars.rc)
+endif()
 
 # LDFLAGS: flags que voce queira enviar ao ligador
 SET(LDFLAGS "" CACHE STRING "flags enviadas ao linker")
