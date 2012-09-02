@@ -15,7 +15,7 @@ import Ship
 
 import ItemFactory
 
-CHEATS = True
+CHEATS = False
 
 def StartupScene():
     #print "STARTING SCENE"

@@ -89,10 +89,14 @@ class Ship (BasicEntity):
         middleL = sideDir
         middleR = (sideDir * -1)
         offset = dir * self.size.get_y()/2.0
-        v1 = middleL + (offset*-1)
-        v2 = middleL + offset
-        v3 = middleR + offset
-        v4 = middleR + (offset * -1)
+        #v1 = middleL + (offset*-1)
+        #v2 = middleL + offset
+        #v3 = middleR + offset
+        #v4 = middleR + (offset * -1)
+        v1 = middleL
+        v2 = offset
+        v3 = middleR
+        v4 = offset * -1
 
         return Vector2DList([v1, v2, v3, v4])
 
