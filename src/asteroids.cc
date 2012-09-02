@@ -50,12 +50,12 @@ int main(int argc, char *argv[]) {
     engine_config.window_size  = Vector2D(640.0, 480.0);
     engine_config.fullscreen   = false;
     engine_config.base_path = ASTEROIDS_DATA_PATH;
+	engine_config.window_icon = "asteroids_wars.bmp";
     struct stat st;
     // Removing the trailing slash.
     int s = stat(engine_config.base_path.substr(0, engine_config.base_path.size() - 1).c_str(), &st);
     if(s < 0 && errno == ENOENT)
         engine_config.base_path = "./data/";
-    engine_config.window_icon = "";
 
     InitScripts();
     ugdk::Engine::reference()->Initialize(engine_config);
